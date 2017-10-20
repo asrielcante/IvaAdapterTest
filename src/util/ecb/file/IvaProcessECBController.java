@@ -27,7 +27,7 @@ public class IvaProcessECBController {
     StringBuilder fileProcessLine;
     StringBuilder fileBlockTwo;
 	
-	public void processTxtFile(String fileName) {
+	public void processECBTxtFile(String fileName) {
 		FileInputStream fileToProcess = null;
 		DataInputStream in = null;
 		BufferedReader br = null;

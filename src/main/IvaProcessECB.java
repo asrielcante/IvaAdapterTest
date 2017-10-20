@@ -9,6 +9,6 @@ public class IvaProcessECB {
 		String fileName = "CFDOPBANCO20171016.TXT";
 		
 		IvaProcessECBController ecbUtil = new IvaProcessECBController();
-		ecbUtil.processTxtFile(fileName);
+		ecbUtil.processECBTxtFile(fileName);
 	}
 }

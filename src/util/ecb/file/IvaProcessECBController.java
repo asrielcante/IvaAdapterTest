@@ -11,11 +11,14 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
 
-public class EcbTxtFileUtil {
+public class IvaProcessECBController {
 	
-	String filePath = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\";
-	String fileName = "CFDOPBANCO20171016.TXT";
-	String outputFilePath = filePath+"output\\";
+	public IvaProcessECBController() {
+	
+	}
+	
+	public static String inputFilePath = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\";
+	public static String outputFilePath = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\output\\";
 	
 	BigDecimal val1;
 	BigDecimal val2;
@@ -24,7 +27,7 @@ public class EcbTxtFileUtil {
     StringBuilder fileProcessLine;
     StringBuilder fileBlockTwo;
 	
-	public void processTxtFile() {
+	public void processTxtFile(String fileName) {
 		FileInputStream fileToProcess = null;
 		DataInputStream in = null;
 		BufferedReader br = null;
@@ -37,7 +40,7 @@ public class EcbTxtFileUtil {
 		File outputFile;
 		
 		try{
-			fileToProcess = new FileInputStream(filePath + fileName);
+			fileToProcess = new FileInputStream(inputFilePath + fileName);
 			in = new DataInputStream(fileToProcess);
 			br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 			outDir =  new File(outputFilePath);

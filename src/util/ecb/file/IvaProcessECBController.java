@@ -21,6 +21,9 @@ public class IvaProcessECBController {
 	
 	public static String inputFilePath = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\";
 	public static String outputFilePath = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\output\\";
+	public static String ingresoConceptsFileName = "conceptosIngresos.TXT";
+	public static String egresoConceptsFileName = "conceptosEgresos.TXT";
+	public static String fileNameExttension = ".TXT";
 	
 	BigDecimal val1;
 	BigDecimal val2;
@@ -34,9 +37,12 @@ public class IvaProcessECBController {
     StringBuilder lineSixSb;
     
     String firstLine = null;
-    String [] arrayFirstLine = null;
-	List<String> lineSixList = null;
 	List<String[]> lineElevenList = null;
+	
+	List<String> ingresoConceptList = null;
+	List<String> egresoConceptList = null;
+	
+	String documentType = null;
 	
 	public void processECBTxtFile(String fileName) {
 		FileInputStream fileToProcess = null;
@@ -47,23 +53,38 @@ public class IvaProcessECBController {
 		OutputStreamWriter osw = null;
 		Writer fileWriter = null;
 		
+		FileOutputStream fosControl = null;
+		OutputStreamWriter oswControl = null;
+		Writer fileWriterControl = null;
+		
 		File outDir;
 		File outputFile;
+		File outputControlFile;
 		
 		try{
-			fileToProcess = new FileInputStream(inputFilePath + fileName);
+			fileToProcess = new FileInputStream(inputFilePath + fileName + fileNameExttension);
 			in = new DataInputStream(fileToProcess);
 			br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-			outDir =  new File(outputFilePath);
+			String outPath = outputFilePath + fileName + "\\";
+			outDir =  new File(outPath);
 			if (!outDir.exists()) {
 				outDir.mkdirs();
 			}
 			String strLine;
 			
-			outputFile = new File(outputFilePath + "GENERATED" +fileName);
+			loadIngresoConceptList();
+			loadEgresoConceptList();
+			
+			outputFile = new File(outPath + "GENERATED_" +fileName + fileNameExttension);
+			outputControlFile = new File(outPath + "CONTROL_" +fileName + fileNameExttension);
+			
 			fos = new FileOutputStream(outputFile);
             osw = new OutputStreamWriter(fos, "UTF-8");    
             fileWriter = new BufferedWriter(osw);
+            
+            fosControl = new FileOutputStream(outputControlFile);
+            oswControl = new OutputStreamWriter(fosControl, "UTF-8");    
+            fileWriterControl = new BufferedWriter(oswControl);
             
             fileBlockOne = new StringBuilder();
             fileProcessLine = new StringBuilder();
@@ -76,8 +97,6 @@ public class IvaProcessECBController {
 			totalMnOriginal = BigDecimal.ZERO;
 			
 			firstLine = null;
-			arrayFirstLine = null;
-			lineSixList = new ArrayList<String>();
 			
 			lineElevenList = new ArrayList<String[]>();
 			
@@ -96,64 +115,111 @@ public class IvaProcessECBController {
 						if(!firstLoop){
 							
 							if(totalMnOriginal.compareTo(newTotalMn) != 0){
-								//realizar cambios
-							}else{
-								fileWriter.write(firstLine + "\n"
-										+ fileBlockOne.toString() 
-										+ lineSixSb.toString() 
-										+ fileBlockTwo.toString());
-								ecbWritten++;
+								String [] lineOne = firstLine.split("\\|");
+								//guardar NumTarjeta e TotalMn en control file
+								fileWriterControl.write(lineOne[4] + "|" + lineOne[5] + "|" + newTotalMn.toString() + "\n");
+								//generar linea 1
+								firstLine = replaceTotalFromFirstLine(firstLine, newTotalMn);
+								//generar lineas 6
+								lineSixSb = generateSixLinesBlock(lineElevenList);
+								
 							}
 							
-							
-							//fileProcessLine.append(generateProcessLine(val1, val2));
-							//fileWriter.write(fileBlockOne.toString() + fileProcessLine.toString() + fileBlockTwo.toString());
-							//ecbWritten++;
+							fileWriter.write(firstLine + "\n"
+									+ fileBlockOne.toString() 
+									+ lineSixSb.toString() 
+									+ fileBlockTwo.toString());
+							ecbWritten++;
 							
 							resetECB();
 						}
 						
 						firstLine = strLine;
-						arrayFirstLine = arrayValues;
-						totalMnOriginal = new BigDecimal(arrayFirstLine[5]);
-						//fileBlockOne.append(strLine+"\n");
+						totalMnOriginal = new BigDecimal(arrayValues[5]);
 						
 					}else if(lineNum > 1 && lineNum < 6){//lineas 2 a 5
+						if(lineNum == 2){
+							documentType = arrayValues[1];
+						}
 						fileBlockOne.append(strLine+"\n");
 					}else if(lineNum == 6){//linea 6
-						//lineSixList.add(strLine);
 						lineSixSb.append(strLine + "\n");
 						newTotalMn = newTotalMn.add(new BigDecimal(arrayValues[2]));
 					}else if(lineNum > 6 && lineNum < 11){//lineas 7 a 10
 						fileBlockTwo.append(strLine+"\n");
 					}else if(lineNum == 11){//linea 11
 						fileBlockTwo.append(strLine+"\n");
-						lineElevenList.add(arrayValues);
+						
+						//solo se toman en cuenta lineas 11 que esten en los archivos de config ingreso/egreso
+						if(documentType.equalsIgnoreCase("I") 
+								&& ingresoConceptList.contains(arrayValues[3])){
+							lineElevenList.add(arrayValues);
+						}else if(documentType.equalsIgnoreCase("E")
+								&& egresoConceptList.contains(arrayValues[3])){
+							lineElevenList.add(arrayValues);
+						}
+						
 					}
 				}
 				firstLoop = false;
 			}
-//			if (ecbWritten < ecbCount ){
-//				System.out.println("Escribiendo ultimo ECB");
-//				
-//				fileProcessLine.append(generateProcessLine(val1, val2));
-//				fileWriter.write(fileBlockOne.toString() + fileProcessLine.toString() + fileBlockTwo.toString().trim());
-//				
-//				resetECB();
-//			}
+			if (ecbWritten < ecbCount ){
+				System.out.println("Escribiendo ultimo ECB");
+				
+				if(totalMnOriginal.compareTo(newTotalMn) != 0){
+					String [] lineOne = firstLine.split("\\|");
+					//guardar NumTarjeta e TotalMn en control file
+					fileWriterControl.write(lineOne[4] + "|" + lineOne[5] + "|" + newTotalMn.toString());
+					//generar linea 1
+					firstLine = replaceTotalFromFirstLine(firstLine, newTotalMn);
+					//generar lineas 6
+					lineSixSb = generateSixLinesBlock(lineElevenList);
+					
+				}
+				fileWriter.write(firstLine + "\n"
+						+ fileBlockOne.toString() 
+						+ lineSixSb.toString() 
+						+ fileBlockTwo.toString().trim());
+				ecbWritten++;
+				
+				resetECB();
+			}
 			
 			fileWriter.close();
+			fileWriterControl.close();
 			br.close();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 	}
 	
-	private String generateProcessLine(BigDecimal value1, BigDecimal value2){
-		String generatedLine = "";
+	private String replaceTotalFromFirstLine(String originalLine, BigDecimal newTotalMnValue){
+		StringBuilder controlLineSb = new StringBuilder();
+		String [] originalLineArray = originalLine.split("\\|");
 		
-		generatedLine = "07|" + value1.toString() + "|" + value2.toString() + "\n";
-		return generatedLine;
+		for(int i = 0; i < originalLineArray.length; i++){
+			if( i == 5){
+				controlLineSb.append(newTotalMnValue.toString() + "|");
+			}else{
+				controlLineSb.append(originalLineArray[i] + "|");
+			}
+		}
+		controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
+		return controlLineSb.toString();
+	}
+	
+	private StringBuilder generateSixLinesBlock(List<String[]> ecbMovList){
+		StringBuilder result = new StringBuilder();
+		
+		for(String[] mov : ecbMovList){
+			result.append("06|");
+			result.append(mov[3]);
+			result.append("|");
+			result.append(mov[5]);
+			result.append("\n");
+		}
+		
+		return result;
 	}
 	
 	private void resetECB(){
@@ -166,20 +232,36 @@ public class IvaProcessECBController {
 		newTotalMn = BigDecimal.ZERO;
 		totalMnOriginal = BigDecimal.ZERO;
 		
-		arrayFirstLine = null;
 		lineSixSb = new StringBuilder();
-		//lineSixList = new ArrayList<String>();
 		lineElevenList = new ArrayList<String[]>();
+		
+		documentType = null;
 	}
 	
-	private String strJoin(String[] aArr, String sSep) {
-	    StringBuilder sbStr = new StringBuilder();
-	    for (int i = 0, il = aArr.length; i < il; i++) {
-	        if (i > 0)
-	            sbStr.append(sSep);
-	        sbStr.append(aArr[i]);
-	    }
-	    return sbStr.toString();
+	private void loadIngresoConceptList() throws Exception{
+		FileInputStream fis = new FileInputStream(inputFilePath + ingresoConceptsFileName);
+		DataInputStream dis  = new DataInputStream(fis);
+		BufferedReader bfr = new BufferedReader(new InputStreamReader(dis, "UTF-8"));
+		String ingresoLine = null;
+		ingresoConceptList = new ArrayList<String>();
+		
+		while((ingresoLine = bfr.readLine()) != null){
+			ingresoConceptList.add(ingresoLine);
+		}
+		bfr.close();
+	}
+	
+	private void loadEgresoConceptList() throws Exception{
+		FileInputStream fis = new FileInputStream(inputFilePath + egresoConceptsFileName);
+		DataInputStream dis  = new DataInputStream(fis);
+		BufferedReader bfr = new BufferedReader(new InputStreamReader(dis, "UTF-8"));
+		String egresoLine = null;
+		egresoConceptList = new ArrayList<String>();
+		
+		while((egresoLine = bfr.readLine()) != null){
+			egresoConceptList.add(egresoLine);
+		}
+		bfr.close();
 	}
 
 }

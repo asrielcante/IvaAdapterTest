@@ -10,6 +10,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 public class IvaProcessECBController {
 	
@@ -22,10 +24,19 @@ public class IvaProcessECBController {
 	
 	BigDecimal val1;
 	BigDecimal val2;
+	BigDecimal totalMnOriginal;
+	BigDecimal newTotalMn;
 	
 	StringBuilder fileBlockOne;
     StringBuilder fileProcessLine;
     StringBuilder fileBlockTwo;
+    
+    StringBuilder lineSixSb;
+    
+    String firstLine = null;
+    String [] arrayFirstLine = null;
+	List<String> lineSixList = null;
+	List<String[]> lineElevenList = null;
 	
 	public void processECBTxtFile(String fileName) {
 		FileInputStream fileToProcess = null;
@@ -57,9 +68,19 @@ public class IvaProcessECBController {
             fileBlockOne = new StringBuilder();
             fileProcessLine = new StringBuilder();
             fileBlockTwo = new StringBuilder();
+            lineSixSb = new StringBuilder();
             
             val1 = BigDecimal.ZERO;
 			val2 = BigDecimal.ZERO;
+			newTotalMn = BigDecimal.ZERO;
+			totalMnOriginal = BigDecimal.ZERO;
+			
+			firstLine = null;
+			arrayFirstLine = null;
+			lineSixList = new ArrayList<String>();
+			
+			lineElevenList = new ArrayList<String[]>();
+			
 			boolean firstLoop = true;
 			int ecbCount = 0;
 			int ecbWritten = 0;
@@ -68,41 +89,58 @@ public class IvaProcessECBController {
 				if(!strLine.equals("")){
 					String [] arrayValues = strLine.split("\\|");
 					int lineNum = Integer.parseInt(arrayValues[0]);
-					if(lineNum == 1){
+					
+					if(lineNum == 1){//linea 1
 						ecbCount++;
 						
 						if(!firstLoop){
 							
-							fileProcessLine.append(generateProcessLine(val1, val2));
-							fileWriter.write(fileBlockOne.toString() + fileProcessLine.toString() + fileBlockTwo.toString());
-							ecbWritten++;
+							if(totalMnOriginal.compareTo(newTotalMn) != 0){
+								//realizar cambios
+							}else{
+								fileWriter.write(firstLine + "\n"
+										+ fileBlockOne.toString() 
+										+ lineSixSb.toString() 
+										+ fileBlockTwo.toString());
+								ecbWritten++;
+							}
+							
+							
+							//fileProcessLine.append(generateProcessLine(val1, val2));
+							//fileWriter.write(fileBlockOne.toString() + fileProcessLine.toString() + fileBlockTwo.toString());
+							//ecbWritten++;
 							
 							resetECB();
 						}
 						
-						fileBlockOne.append(strLine+"\n");
+						firstLine = strLine;
+						arrayFirstLine = arrayValues;
+						totalMnOriginal = new BigDecimal(arrayFirstLine[5]);
+						//fileBlockOne.append(strLine+"\n");
 						
-					}else if(lineNum > 1 && lineNum < 7){
+					}else if(lineNum > 1 && lineNum < 6){//lineas 2 a 5
 						fileBlockOne.append(strLine+"\n");
-					}else if(lineNum > 7 && lineNum < 11){
+					}else if(lineNum == 6){//linea 6
+						//lineSixList.add(strLine);
+						lineSixSb.append(strLine + "\n");
+						newTotalMn = newTotalMn.add(new BigDecimal(arrayValues[2]));
+					}else if(lineNum > 6 && lineNum < 11){//lineas 7 a 10
 						fileBlockTwo.append(strLine+"\n");
-					}else if(lineNum == 11){
+					}else if(lineNum == 11){//linea 11
 						fileBlockTwo.append(strLine+"\n");
-						//calcular
-						val1 = val1.add(new BigDecimal(arrayValues[5]));
-						val2 = val2.add(new BigDecimal(arrayValues[5]));
+						lineElevenList.add(arrayValues);
 					}
 				}
 				firstLoop = false;
 			}
-			if (ecbWritten < ecbCount ){
-				System.out.println("Escribiendo ultimo ECB");
-				
-				fileProcessLine.append(generateProcessLine(val1, val2));
-				fileWriter.write(fileBlockOne.toString() + fileProcessLine.toString() + fileBlockTwo.toString().trim());
-				
-				resetECB();
-			}
+//			if (ecbWritten < ecbCount ){
+//				System.out.println("Escribiendo ultimo ECB");
+//				
+//				fileProcessLine.append(generateProcessLine(val1, val2));
+//				fileWriter.write(fileBlockOne.toString() + fileProcessLine.toString() + fileBlockTwo.toString().trim());
+//				
+//				resetECB();
+//			}
 			
 			fileWriter.close();
 			br.close();
@@ -124,6 +162,14 @@ public class IvaProcessECBController {
 		fileBlockTwo = new StringBuilder();
 		val1 = BigDecimal.ZERO;
 		val2 = BigDecimal.ZERO;
+		
+		newTotalMn = BigDecimal.ZERO;
+		totalMnOriginal = BigDecimal.ZERO;
+		
+		arrayFirstLine = null;
+		lineSixSb = new StringBuilder();
+		//lineSixList = new ArrayList<String>();
+		lineElevenList = new ArrayList<String[]>();
 	}
 	
 	private String strJoin(String[] aArr, String sSep) {

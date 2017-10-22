@@ -23,7 +23,7 @@ public class IvaProcessECBController {
 	public static String outputFilePath = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\output\\";
 	public static String ingresoConceptsFileName = "conceptosIngresos.TXT";
 	public static String egresoConceptsFileName = "conceptosEgresos.TXT";
-	public static String fileNameExttension = ".TXT";
+	public static String filesExtension = ".TXT";
 	
 	BigDecimal val1;
 	BigDecimal val2;
@@ -62,7 +62,7 @@ public class IvaProcessECBController {
 		File outputControlFile;
 		
 		try{
-			fileToProcess = new FileInputStream(inputFilePath + fileName + fileNameExttension);
+			fileToProcess = new FileInputStream(inputFilePath + fileName + filesExtension);
 			in = new DataInputStream(fileToProcess);
 			br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 			String outPath = outputFilePath + fileName + "\\";
@@ -75,8 +75,8 @@ public class IvaProcessECBController {
 			loadIngresoConceptList();
 			loadEgresoConceptList();
 			
-			outputFile = new File(outPath + "GENERATED_" +fileName + fileNameExttension);
-			outputControlFile = new File(outPath + "CONTROL_" +fileName + fileNameExttension);
+			outputFile = new File(outPath + "GENERATED_" +fileName + filesExtension);
+			outputControlFile = new File(outPath + "CONTROL_" +fileName + filesExtension);
 			
 			fos = new FileOutputStream(outputFile);
             osw = new OutputStreamWriter(fos, "UTF-8");    

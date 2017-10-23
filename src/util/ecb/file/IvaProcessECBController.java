@@ -19,8 +19,10 @@ public class IvaProcessECBController {
 	
 	}
 	
-	public static String inputFilePath = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\";
-	public static String outputFilePath = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\output\\";
+//	public static String inputFilePath = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\";
+//	public static String outputFilePath = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\output\\";
+	public static String inputFilePath = "/home/linuxlite/shell_scripts/ECBIVA/input/";
+	public static String outputFilePath = "/home/linuxlite/shell_scripts/ECBIVA/output/";
 	public static String ingresoConceptsFileName = "conceptosIngresos.TXT";
 	public static String egresoConceptsFileName = "conceptosEgresos.TXT";
 	public static String filesExtension = ".TXT";
@@ -65,7 +67,8 @@ public class IvaProcessECBController {
 			fileToProcess = new FileInputStream(inputFilePath + fileName + filesExtension);
 			in = new DataInputStream(fileToProcess);
 			br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-			String outPath = outputFilePath + fileName + "\\";
+//			String outPath = outputFilePath + fileName + "\\";
+			String outPath = outputFilePath + fileName + "/";
 			outDir =  new File(outPath);
 			if (!outDir.exists()) {
 				outDir.mkdirs();
@@ -116,7 +119,7 @@ public class IvaProcessECBController {
 							
 							if(totalMnOriginal.compareTo(newTotalMn) != 0){
 								String [] lineOne = firstLine.split("\\|");
-								//guardar NumTarjeta e TotalMn en control file
+								//guardar NumTarjeta y TotalMn en control file
 								fileWriterControl.write(lineOne[4] + "|" + lineOne[5] + "|" + newTotalMn.toString() + "\n");
 								//generar linea 1
 								firstLine = replaceTotalFromFirstLine(firstLine, newTotalMn);
@@ -168,7 +171,7 @@ public class IvaProcessECBController {
 				
 				if(totalMnOriginal.compareTo(newTotalMn) != 0){
 					String [] lineOne = firstLine.split("\\|");
-					//guardar NumTarjeta e TotalMn en control file
+					//guardar NumTarjeta y TotalMn en control file
 					fileWriterControl.write(lineOne[4] + "|" + lineOne[5] + "|" + newTotalMn.toString());
 					//generar linea 1
 					firstLine = replaceTotalFromFirstLine(firstLine, newTotalMn);
@@ -176,6 +179,7 @@ public class IvaProcessECBController {
 					lineSixSb = generateSixLinesBlock(lineElevenList);
 					
 				}
+				
 				fileWriter.write(firstLine + "\n"
 						+ fileBlockOne.toString() 
 						+ lineSixSb.toString() 

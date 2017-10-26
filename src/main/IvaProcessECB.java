@@ -1,6 +1,6 @@
 package main;
 
-import util.ecb.file.IvaProcessECBController;
+import util.ecb.file.ProcessTotalECBController;
 
 public class IvaProcessECB {
 
@@ -9,7 +9,7 @@ public class IvaProcessECB {
 		//String fileName = "CFDLMPAMPAS20171016T07_03_14";
 		String fileName = args[0].trim();
 				
-		IvaProcessECBController ecbUtil = new IvaProcessECBController();
+		ProcessTotalECBController ecbUtil = new ProcessTotalECBController();
 		ecbUtil.processECBTxtFile(fileName);
 	}
 }

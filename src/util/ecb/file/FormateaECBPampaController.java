@@ -15,15 +15,15 @@ import java.util.List;
 
 public class FormateaECBPampaController {
 	
-//	public static String PathECBEntrada = "/home/linuxlite/shell_scripts/ECBIVA/entrada/";
-//	public static String PathECBSalida = "/home/linuxlite/shell_scripts/ECBIVA/salida/";
-//	public static String PathECBProceso = "/home/linuxlite/shell_scripts/ECBIVA/proceso/";
-//	public static String PathECBCatalogos = "/home/linuxlite/shell_scripts/ECBIVA/catalogos/";
+	public static String PathECBEntrada = "/home/linuxlite/shell_scripts/ECBIVA/interfaces/";
+	public static String PathECBSalida = "/home/linuxlite/shell_scripts/ECBIVA/CFDProcesados/";
+	public static String PathECBProceso = "/home/linuxlite/shell_scripts/ECBIVA/Proceso/";
+	public static String PathECBCatalogos = "/home/linuxlite/shell_scripts/ECBIVA/Catalogos/";
 	
-	public static String PathECBEntrada = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\interfaces\\";
-	public static String PathECBSalida = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\CFDProcesados\\";
-	public static String PathECBProceso = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\Proceso\\";
-	public static String PathECBCatalogos = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\Catalogos\\";
+//	public static String PathECBEntrada = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\interfaces\\";
+//	public static String PathECBSalida = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\CFDProcesados\\";
+//	public static String PathECBProceso = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\Proceso\\";
+//	public static String PathECBCatalogos = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\Catalogos\\";
 	
 	public static String pampasConceptCatalog = "pampaConceptos.TXT";
 	public static String filesExtension = ".TXT";
@@ -162,12 +162,12 @@ public class FormateaECBPampaController {
 			e.printStackTrace();
 			System.out.println("Exception processTotalECB:" + e.getMessage());
 			try {
-				FileOutputStream fileError = new FileOutputStream(PathECBProceso + "processTotalECBError.txt");
+				FileOutputStream fileError = new FileOutputStream(PathECBProceso + "formateaECBPampaError.txt");
 				fileError.write(e.getMessage().getBytes());
 				fileError.close();
 			} catch (Exception e1) {
 				e1.printStackTrace();
-				System.out.println("Exception al crear processTotalECBError.txt:" + e.getMessage());
+				System.out.println("Exception al crear formateaECBPampaError.txt:" + e.getMessage());
 			}
 			return false;
 		}		

@@ -31,9 +31,21 @@ echo "Iniciando el procesamiento de las tareas"
 timeStart=$(date +%F-%l-%M-%S-)"M"$(($(date +%s%N)/1000000))
 echo "TIMESTARTJAVA:"$timeStart > massive.log
 
+if [ -z "$1" ];
+then
+	echo "ERROR: No se encuentra el parametro nombres"
+	exit -1
+fi
+if [ -z "$2" ];
+then
+	echo "ERROR: No se encuentra el parametro fecha"
+	exit -1
+fi
+nombres=$1
+fecha=$2
 
-echo "Iniciando tareas process total ECB para ECB" >> massive.log 
-$JAVA_HOME_MASIVO $JAVA_ARGS_VI_MASIVO -classpath $CLASSPATH_LIB3_3 com.interfactura.firmalocal.main.ProcessTotalECB >> massive.log 2> massive.err 
+echo "Iniciando tareas Formatea ECB: $nombres" >> massive.log 
+$JAVA_HOME_MASIVO $JAVA_ARGS_VI_MASIVO -classpath $CLASSPATH_LIB3_3 com.interfactura.firmalocal.main.FormateaECB $nombres $fecha >> massive.log 2> massive.err 
 
 
 

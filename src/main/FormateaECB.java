@@ -15,6 +15,9 @@ public class FormateaECB {
 		String[] filenames = args[0].split(",");
 		String date = args[1].trim();
 		
+		System.out.println("names: "+args[0]);
+		System.out.println("date: "+args[1]);
+		
 		FormateaECBPampaController ecbPampaUtil = new FormateaECBPampaController();
 		
 		for(int i = 0; i < filenames.length; i ++){

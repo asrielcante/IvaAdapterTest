@@ -10,19 +10,19 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class FormateaECBPampaController {
 	
 	public static String PathECBEntrada = "/home/linuxlite/shell_scripts/ECBIVA/interfaces/";
 	public static String PathECBSalida = "/home/linuxlite/shell_scripts/ECBIVA/CFDProcesados/";
-	public static String PathECBProceso = "/home/linuxlite/shell_scripts/ECBIVA/Proceso/";
 	public static String PathECBCatalogos = "/home/linuxlite/shell_scripts/ECBIVA/Catalogos/";
 	
 //	public static String PathECBEntrada = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\interfaces\\";
 //	public static String PathECBSalida = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\CFDProcesados\\";
-//	public static String PathECBProceso = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\Proceso\\";
 //	public static String PathECBCatalogos = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\Catalogos\\";
 	
 	public static String pampasConceptCatalog = "pampaConceptos.TXT";
@@ -69,11 +69,6 @@ public class FormateaECBPampaController {
 		            osw = new OutputStreamWriter(fos, "UTF-8");    
 		            fileWriter = new BufferedWriter(osw);
 		            
-		            //outputControlFile = new File(outPath + "CONTROL_" +fileName + filesExtension);
-		            //fosControl = new FileOutputStream(outputControlFile);
-		            //oswControl = new OutputStreamWriter(fosControl, "UTF-8");    
-		            //fileWriterControl = new BufferedWriter(oswControl);
-		            
 		            fileBlockOne = new StringBuilder();
 		            fileBlockTwo = new StringBuilder();
 		            lineSixSb = new StringBuilder();
@@ -81,6 +76,7 @@ public class FormateaECBPampaController {
 					boolean firstLoop = true;
 					int ecbCount = 0;
 					int ecbWritten = 0;
+					int ecbOmitted = 0;
 					while((strLine = br.readLine()) != null){
 						
 						if(!strLine.equals("")){
@@ -91,11 +87,13 @@ public class FormateaECBPampaController {
 								ecbCount++;
 								
 								if(!firstLoop){
-									fileWriter.write(fileBlockOne.toString() 
-											+ lineSixSb.toString() 
-											+ fileBlockTwo.toString());
+									if(!lineSixSb.toString().isEmpty()){
+										fileWriter.write(fileBlockOne.toString() 
+												+ lineSixSb.toString() 
+												+ fileBlockTwo.toString());
+										ecbOmitted++;
+									}
 									ecbWritten++;
-									
 									resetECB();
 								}
 								fileBlockOne.append(strLine+"\n");
@@ -120,18 +118,20 @@ public class FormateaECBPampaController {
 					}
 					if (ecbWritten < ecbCount ){
 						System.out.println("Escribiendo ultimo ECB");
-						fileWriter.write(fileBlockOne.toString() 
-								+ lineSixSb.toString() 
-								+ fileBlockTwo.toString());
-
+						if(!lineSixSb.toString().isEmpty()){
+							fileWriter.write(fileBlockOne.toString() 
+									+ lineSixSb.toString() 
+									+ fileBlockTwo.toString());
+							ecbOmitted++;
+						}
 						ecbWritten++;
 						resetECB();
 					}
 					
 					fileWriter.close();
-					//fileWriterControl.close();
 					br.close();
-					File movedFile = new File(PathECBSalida + fileName + "ORIGINAL" + filesExtension);
+					String timeStamp = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
+					File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_" + timeStamp + filesExtension);
 					if(!movedFile.exists()){
 						if(inputFile.renameTo(movedFile)){
 				    		//renombrar archivo generado
@@ -160,15 +160,7 @@ public class FormateaECBPampaController {
 				return result;
 		}catch(Exception e){
 			e.printStackTrace();
-			System.out.println("Exception processTotalECB:" + e.getMessage());
-			try {
-				FileOutputStream fileError = new FileOutputStream(PathECBProceso + "formateaECBPampaError.txt");
-				fileError.write(e.getMessage().getBytes());
-				fileError.close();
-			} catch (Exception e1) {
-				e1.printStackTrace();
-				System.out.println("Exception al crear formateaECBPampaError.txt:" + e.getMessage());
-			}
+			System.out.println("Exception formateaECBPampa:" + e.getMessage());
 			return false;
 		}		
 	}

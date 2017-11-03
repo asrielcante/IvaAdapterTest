@@ -1,6 +1,6 @@
 #!/bin/bash
 ######################################################################################
-# Nombre del shell: processTotalECB.sh
+# Nombre del shell: formateaEdoCuenta.sh
 # Tipo de proceso (BATCH u ONLINE):BATCH
 # Periodicidad: Diaria
 # Equipo de produccion:<>

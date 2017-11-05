@@ -6,7 +6,10 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
@@ -19,7 +22,7 @@ public class FormateaECBPampaController {
 	
 	public static String PathECBEntrada = "/home/linuxlite/shell_scripts/ECBIVA/interfaces/";
 	public static String PathECBSalida = "/home/linuxlite/shell_scripts/ECBIVA/CFDProcesados/";
-	public static String PathECBCatalogos = "/home/linuxlite/shell_scripts/ECBIVA/Catalogos/";
+	public static String PathECBCatalogos = "/home/linuxlite/shell_scripts/ECBIVA/interfaces/";
 	
 //	public static String PathECBEntrada = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\interfaces\\";
 //	public static String PathECBSalida = "C:\\Users\\ase\\Desktop\\ECB batch\\ejemplosdearchivosdeentradaedc\\CFDProcesados\\";
@@ -132,24 +135,14 @@ public class FormateaECBPampaController {
 					br.close();
 					String timeStamp = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 					File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_" + timeStamp + filesExtension);
-					if(!movedFile.exists()){
-						if(inputFile.renameTo(movedFile)){
-				    		//renombrar archivo generado
-							if(outputFile.renameTo(new File(PathECBEntrada + fileName + filesExtension))){
-								System.out.println("Los archivos procesados se han ubicado correctamente");
-								result = true;
-							}else{
-								System.out.println("No se pudo renombrar el archivo generado");
-								result = false;
-							}
-				    	}else{
-				    		System.out.println("No se pudo mover el archivo original");
-				    		result = false;
-				    	}
+					if(moveFile(inputFile, movedFile)){//mover archivo original
+						//renombrar archivo generado
+						if(moveFile(outputFile, new File(PathECBEntrada + fileName + filesExtension))){
+							result = true;
+						}else{
+							result = false;
+						}
 					}else{
-						System.out.println("El archivo: " + PathECBSalida + fileName + "ORIGINAL" + filesExtension
-								+" ya existe en la ruta de salida");
-						outputFile.delete();
 						result = false;
 					}
 					
@@ -157,8 +150,13 @@ public class FormateaECBPampaController {
 					System.out.println("No se encontro el archivo de entrada: "+PathECBEntrada + fileName + filesExtension);
 					result = false;
 				}
+				
 				return result;
 		}catch(Exception e){
+			File delete = new File(PathECBEntrada + "GENERATED_" +fileName + filesExtension);
+			if(delete.exists()){
+				delete.delete();
+			}
 			e.printStackTrace();
 			System.out.println("Exception formateaECBPampa:" + e.getMessage());
 			return false;
@@ -201,6 +199,39 @@ public class FormateaECBPampaController {
 			}
 		}
 		return result;
+	}
+	private static boolean moveFile(File afile, File bfile){
+		InputStream inStream = null;
+		OutputStream outStream = null;
+
+	    	try{
+
+	    	    inStream = new FileInputStream(afile);
+	    	    outStream = new FileOutputStream(bfile);
+
+	    	    byte[] buffer = new byte[1024];
+
+	    	    int length;
+	    	    //copy the file content in bytes
+	    	    while ((length = inStream.read(buffer)) > 0){
+
+	    	    	outStream.write(buffer, 0, length);
+
+	    	    }
+
+	    	    inStream.close();
+	    	    outStream.close();
+
+	    	    //delete the original file
+	    	    afile.delete();
+
+	    	    System.out.println("Archivo movido con exito");
+	    	    return true;
+
+	    	}catch(IOException e){
+	    		e.printStackTrace();
+	    		return false;
+	    	}
 	}
 	
 }

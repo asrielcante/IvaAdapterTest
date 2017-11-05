@@ -30,19 +30,21 @@ public class FormateaECB {
 					|| filenames[i].equalsIgnoreCase("CFDLMPAMPAA")){//ajuste lineas 6 para pampa
 				if(!ecbPampaUtil.processECBTxtFile(filenames[i].trim()+date)){
 					continua = false;
-					System.out.println("Error al procesar: " + filenames[i].trim());
+					System.out.println("Error al procesar pampa: " + filenames[i].trim());
 				}
 			}else{
 				//reglas faltantes carter...
 			}
 			
 			if(continua){//ajuste iva para todas las interfaces
-				ecbIvaUtil.processECBTxtFile(filenames[i].trim()+date);
+				if(!ecbIvaUtil.processECBTxtFile(filenames[i].trim()+date)){
+					System.out.println("Error al procesar iva: " + filenames[i].trim());
+				}
 			}
 			
 		}
 		
-		System.out.println("Fin del procesamiento Formatea ECB Pampa");
+		System.out.println("Fin del procesamiento Formatea ECB");
 		System.exit(0);
 	}
 }

@@ -48,6 +48,7 @@ public class FormateaECBPampaController {
 	}
 
 	public boolean processECBTxtFile(String fileName) {
+		System.out.println("Inicia Formatea PAMPA - " + fileName);
 		boolean result = true;
 		try {
 			FileInputStream fileToProcess = null;
@@ -122,7 +123,7 @@ public class FormateaECBPampaController {
 					firstLoop = false;
 				}
 				if (ecbWritten < ecbCount) {
-					System.out.println("Escribiendo ultimo ECB");
+					System.out.println("Escribiendo ultimo ECB - Formatea PAMPA");
 					if (!lineSixSb.toString().isEmpty()) {
 						fileWriter.write(fileBlockOne.toString() + lineSixSb.toString() + fileBlockTwo.toString());
 						ecbOmitted++;
@@ -231,7 +232,7 @@ public class FormateaECBPampaController {
 			// delete the original file
 			afile.delete();
 
-			System.out.println("Archivo movido con exito");
+			//System.out.println("Archivo movido con exito");
 			return true;
 
 		} catch (IOException e) {

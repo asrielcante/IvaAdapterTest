@@ -37,6 +37,7 @@ public class FormateaECBIvaController {
 	StringBuilder lineElevenSb;
 
 	String firstLine = null;
+	String lineTwo = null;
 	String lineSeven = null;
 	String lineEigth = null;
 	String lineNine = null;
@@ -50,6 +51,7 @@ public class FormateaECBIvaController {
 	}
 
 	public boolean processECBTxtFile(String fileName) {
+		System.out.println("Inicia Formatea IVA - " + fileName);
 		boolean result = true;
 		try {
 			FileInputStream fileToProcess = null;
@@ -94,6 +96,7 @@ public class FormateaECBIvaController {
 				tasa = BigDecimal.ZERO;
 
 				firstLine = "";
+				lineTwo = "";
 				lineSeven = "";
 				lineEigth = "";
 				lineNine = "";
@@ -125,6 +128,8 @@ public class FormateaECBIvaController {
 									fileWriterControl.write(controlLine);
 									// generar linea 1
 									firstLine = replaceTotalsFromFirstLine(firstLine, newTotalMn, newIvaMn);
+									//generar linea 2
+									lineTwo = replaceTotalsFromLineTwo(lineTwo, newTotalMn, newIvaMn);
 									// generar linea 7
 									lineSeven = replaceIvaFromLineSeven(lineSeven, newIvaMn);
 									// generar linea 9
@@ -133,9 +138,11 @@ public class FormateaECBIvaController {
 									}
 								}
 
-								fileWriter.write(firstLine + "\n" + fileBlockOne.toString() + lineSeven + "\n"
+								fileWriter.write(firstLine + "\n" + lineTwo + "\n"
+										+ fileBlockOne.toString() + lineSeven + "\n"
 										+ (lineEigth.isEmpty() ? "" : lineEigth + "\n")
-										+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
+										+ (lineNine.isEmpty() ? "" : lineNine + "\n") 
+										+ lineTen + "\n"
 										+ lineElevenSb.toString());
 
 								ecbWritten++;
@@ -146,10 +153,10 @@ public class FormateaECBIvaController {
 							totalMnOriginal = new BigDecimal(arrayValues[5]);
 							ivaMnOriginal = new BigDecimal(arrayValues[6]);
 
-						} else if (lineNum > 1 && lineNum < 6) {// lineas 2 a 5
-							if (lineNum == 2) {
-								documentType = arrayValues[1];
-							}
+						}else if(lineNum == 2){
+							lineTwo = strLine;
+							documentType = arrayValues[1];
+						} else if (lineNum > 2 && lineNum < 6) {// lineas 3 a 5
 							fileBlockOne.append(strLine + "\n");
 						} else if (lineNum == 6) {// linea 6
 							newTotalMn = newTotalMn.add(new BigDecimal(arrayValues[2]));
@@ -164,6 +171,12 @@ public class FormateaECBIvaController {
 								tasa = new BigDecimal(arrayValues[2]);
 							}
 						} else if (lineNum == 10) {// linea 10
+							if(lineNine.isEmpty()){//si no hay linea 9 cerrar streams y lanzar excepcion
+								fileWriter.close();
+								fileWriterControl.close();
+								br.close();
+								throw new Exception("Error Formatea IVA - No se encontro fila 9 - ECB " + ecbCount);
+							}
 							lineTen = strLine;
 						} else if (lineNum == 11) {// linea 11
 							lineElevenSb.append(strLine + "\n");
@@ -172,7 +185,7 @@ public class FormateaECBIvaController {
 					firstLoop = false;
 				}
 				if (ecbWritten < ecbCount) {// escribir ultimo ecb
-					System.out.println("Escribiendo ultimo ECB");
+					System.out.println("Escribiendo ultimo ECB - Formatea IVA");
 					// calcula iva
 					newIvaMn = newTotalMn.multiply(tasa).divide(new BigDecimal(100));
 					newIvaMn = newIvaMn.setScale(2, BigDecimal.ROUND_HALF_EVEN);
@@ -184,6 +197,8 @@ public class FormateaECBIvaController {
 						fileWriterControl.write(controlLine);
 						// generar linea 1
 						firstLine = replaceTotalsFromFirstLine(firstLine, newTotalMn, newIvaMn);
+						//generar linea 2
+						lineTwo = replaceTotalsFromLineTwo(lineTwo, newTotalMn, newIvaMn);
 						// generar linea 7
 						lineSeven = replaceIvaFromLineSeven(lineSeven, newIvaMn);
 						// generar linea 9
@@ -192,9 +207,12 @@ public class FormateaECBIvaController {
 						}
 					}
 
-					fileWriter.write(firstLine + "\n" + fileBlockOne.toString() + lineSeven + "\n"
+					fileWriter.write(firstLine + "\n" + lineTwo + "\n"
+							+ fileBlockOne.toString() + lineSeven + "\n"
 							+ (lineEigth.isEmpty() ? "" : lineEigth + "\n")
-							+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n" + lineElevenSb.toString());
+							+ (lineNine.isEmpty() ? "" : lineNine + "\n") 
+							+ lineTen + "\n"
+							+ lineElevenSb.toString());
 
 					ecbWritten++;
 					resetECB();
@@ -236,7 +254,7 @@ public class FormateaECBIvaController {
 				delete.delete();
 			}
 			e.printStackTrace();
-			System.out.println("Exception formateaECBIvaPampa:" + e.getMessage());
+			System.out.println("Exception formateaECBIva: " + e.getMessage());
 			return false;
 		}
 	}
@@ -257,8 +275,29 @@ public class FormateaECBIvaController {
 				controlLineSb.append(originalLineArray[i] + "|");
 			}
 		}
-		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last
-		// pipe
+		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
+		return controlLineSb.toString();
+	}
+	private String replaceTotalsFromLineTwo(String originalLine, BigDecimal newTotalMnValue,
+			BigDecimal newIvaMnValue) {
+		StringBuilder controlLineSb = new StringBuilder();
+		String[] originalLineArray = originalLine.split("\\|");
+		newIvaMnValue = newIvaMnValue.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+		newTotalMnValue = newTotalMnValue.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+		
+		BigDecimal newTotal = newTotalMnValue.add(newIvaMnValue);
+		newTotal = newTotal.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+
+		for (int i = 0; i < originalLineArray.length; i++) {
+			if (i == 6) {
+				controlLineSb.append(newTotalMnValue.toString() + "|");
+			} else if (i == 7) {
+				controlLineSb.append(newTotal.toString() + "|");
+			} else {
+				controlLineSb.append(originalLineArray[i] + "|");
+			}
+		}
+		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
 		return controlLineSb.toString();
 	}
 
@@ -274,8 +313,7 @@ public class FormateaECBIvaController {
 				controlLineSb.append(originalLineArray[i] + "|");
 			}
 		}
-		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last
-		// pipe
+		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
 		return controlLineSb.toString();
 	}
 
@@ -291,8 +329,7 @@ public class FormateaECBIvaController {
 				controlLineSb.append(originalLineArray[i] + "|");
 			}
 		}
-		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last
-		// pipe
+		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
 		return controlLineSb.toString();
 	}
 
@@ -315,7 +352,6 @@ public class FormateaECBIvaController {
 
 	private void resetECB() {
 		fileBlockOne = new StringBuilder();
-		// fileProcessLine = new StringBuilder();
 		fileBlockTwo = new StringBuilder();
 
 		newTotalMn = BigDecimal.ZERO;
@@ -327,11 +363,11 @@ public class FormateaECBIvaController {
 		tasa = BigDecimal.ZERO;
 
 		lineElevenSb = new StringBuilder();
-		// lineElevenList = new ArrayList<String[]>();
 
 		documentType = null;
 
 		firstLine = "";
+		lineTwo = "";
 		lineSeven = "";
 		lineEigth = "";
 		lineNine = "";

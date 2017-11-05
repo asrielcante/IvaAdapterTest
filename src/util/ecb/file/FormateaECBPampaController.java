@@ -140,9 +140,11 @@ public class FormateaECBPampaController {
 						if(moveFile(outputFile, new File(PathECBEntrada + fileName + filesExtension))){
 							result = true;
 						}else{
+							System.out.println("No se pudo renombrar el archivo generado");
 							result = false;
 						}
 					}else{
+						System.out.println("No se pudo mover el archivo original");
 						result = false;
 					}
 					
@@ -150,7 +152,12 @@ public class FormateaECBPampaController {
 					System.out.println("No se encontro el archivo de entrada: "+PathECBEntrada + fileName + filesExtension);
 					result = false;
 				}
-				
+				if(!result){
+					File delete = new File(PathECBEntrada + "GENERATED_" +fileName + filesExtension);
+					if(delete.exists()){
+						delete.delete();
+					}
+				}
 				return result;
 		}catch(Exception e){
 			File delete = new File(PathECBEntrada + "GENERATED_" +fileName + filesExtension);

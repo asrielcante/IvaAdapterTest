@@ -107,7 +107,7 @@ public class FormateaECBIvaController {
 				int ecbCount = 0;
 				int ecbWritten = 0;
 				while ((strLine = br.readLine()) != null) {
-
+					strLine = strLine.trim();
 					if (!strLine.equals("")) {
 						String[] arrayValues = strLine.split("\\|");
 						int lineNum = Integer.parseInt(arrayValues[0]);
@@ -159,7 +159,7 @@ public class FormateaECBIvaController {
 						} else if (lineNum > 2 && lineNum < 6) {// lineas 3 a 5
 							fileBlockOne.append(strLine + "\n");
 						} else if (lineNum == 6) {// linea 6
-							newTotalMn = newTotalMn.add(new BigDecimal(arrayValues[2]));
+							newTotalMn = newTotalMn.add(new BigDecimal(arrayValues[2].trim()));
 							fileBlockOne.append(strLine + "\n");
 						} else if (lineNum == 7) {// linea 7
 							lineSeven = strLine;
@@ -275,7 +275,11 @@ public class FormateaECBIvaController {
 				controlLineSb.append(originalLineArray[i] + "|");
 			}
 		}
-		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
+		String lastChar = originalLine.substring(originalLine.length() - 1);
+		if(!lastChar.equals("|")){
+			controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
+		}
+		
 		return controlLineSb.toString();
 	}
 	private String replaceTotalsFromLineTwo(String originalLine, BigDecimal newTotalMnValue,
@@ -297,7 +301,12 @@ public class FormateaECBIvaController {
 				controlLineSb.append(originalLineArray[i] + "|");
 			}
 		}
-		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
+
+		String lastChar = originalLine.substring(originalLine.length() - 1);
+		if(!lastChar.equals("|")){
+			controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
+		}
+		
 		return controlLineSb.toString();
 	}
 
@@ -313,7 +322,12 @@ public class FormateaECBIvaController {
 				controlLineSb.append(originalLineArray[i] + "|");
 			}
 		}
-		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
+		
+		String lastChar = originalLine.substring(originalLine.length() - 1);
+		if(!lastChar.equals("|")){
+			controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
+		}
+		
 		return controlLineSb.toString();
 	}
 
@@ -329,7 +343,12 @@ public class FormateaECBIvaController {
 				controlLineSb.append(originalLineArray[i] + "|");
 			}
 		}
-		// controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
+
+		String lastChar = originalLine.substring(originalLine.length() - 1);
+		if(!lastChar.equals("|")){
+			controlLineSb.setLength(controlLineSb.length() - 1);//remove last pipe
+		}
+		
 		return controlLineSb.toString();
 	}
 

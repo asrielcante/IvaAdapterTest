@@ -85,7 +85,7 @@ public class FormateaECBPampaController {
 				int ecbWritten = 0;
 				int ecbOmitted = 0;
 				while ((strLine = br.readLine()) != null) {
-
+					strLine = strLine.trim();
 					if (!strLine.equals("")) {
 						String[] arrayValues = strLine.split("\\|");
 						int lineNum = Integer.parseInt(arrayValues[0]);

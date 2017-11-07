@@ -116,25 +116,27 @@ public class FormateaECBIvaController {
 							ecbCount++;
 
 							if (!firstLoop) {
-								// calcula iva
-								newIvaMn = newTotalMn.multiply(tasa).divide(new BigDecimal(100));
-								newIvaMn = newIvaMn.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-								if (ivaMnOriginal.compareTo(newIvaMn) != 0) {
-									String[] lineOne = firstLine.split("\\|");
-									// guardar NumTarjeta, TotalMn e ivaMn en
-									// control file
-									String controlLine = generateControlLine(lineOne[4], lineOne[5], newTotalMn,
-											lineOne[6], newIvaMn);
-									fileWriterControl.write(controlLine);
-									// generar linea 1
-									firstLine = replaceTotalsFromFirstLine(firstLine, newTotalMn, newIvaMn);
-									//generar linea 2
-									lineTwo = replaceTotalsFromLineTwo(lineTwo, newTotalMn, newIvaMn);
-									// generar linea 7
-									lineSeven = replaceIvaFromLineSeven(lineSeven, newIvaMn);
-									// generar linea 9
-									if (!lineNine.isEmpty()) {
-										lineNine = replaceIvaFromLineNine(lineNine, newIvaMn);
+								if(tasa.compareTo(BigDecimal.ZERO) != 0){
+									// calcula iva
+									newIvaMn = newTotalMn.multiply(tasa).divide(new BigDecimal(100));
+									newIvaMn = newIvaMn.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+									if (ivaMnOriginal.compareTo(newIvaMn) != 0) {
+										String[] lineOne = firstLine.split("\\|");
+										// guardar NumTarjeta, TotalMn e ivaMn en
+										// control file
+										String controlLine = generateControlLine(lineOne[4], lineOne[5], newTotalMn,
+												lineOne[6], newIvaMn);
+										fileWriterControl.write(controlLine);
+										// generar linea 1
+										firstLine = replaceTotalsFromFirstLine(firstLine, newTotalMn, newIvaMn);
+										//generar linea 2
+										lineTwo = replaceTotalsFromLineTwo(lineTwo, newTotalMn, newIvaMn);
+										// generar linea 7
+										lineSeven = replaceIvaFromLineSeven(lineSeven, newIvaMn);
+										// generar linea 9
+										if (!lineNine.isEmpty()) {
+											lineNine = replaceIvaFromLineNine(lineNine, newIvaMn);
+										}
 									}
 								}
 
@@ -171,12 +173,6 @@ public class FormateaECBIvaController {
 								tasa = new BigDecimal(arrayValues[2]);
 							}
 						} else if (lineNum == 10) {// linea 10
-							if(lineNine.isEmpty()){//si no hay linea 9 cerrar streams y lanzar excepcion
-								fileWriter.close();
-								fileWriterControl.close();
-								br.close();
-								throw new Exception("Error Formatea IVA - No se encontro fila 9 - ECB " + ecbCount);
-							}
 							lineTen = strLine;
 						} else if (lineNum == 11) {// linea 11
 							lineElevenSb.append(strLine + "\n");
@@ -186,24 +182,26 @@ public class FormateaECBIvaController {
 				}
 				if (ecbWritten < ecbCount) {// escribir ultimo ecb
 					System.out.println("Escribiendo ultimo ECB - Formatea IVA");
-					// calcula iva
-					newIvaMn = newTotalMn.multiply(tasa).divide(new BigDecimal(100));
-					newIvaMn = newIvaMn.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-					if (ivaMnOriginal.compareTo(newIvaMn) != 0) {
-						String[] lineOne = firstLine.split("\\|");
-						// guardar NumTarjeta, TotalMn e ivaMn en control file
-						String controlLine = generateControlLine(lineOne[4], lineOne[5], newTotalMn, lineOne[6],
-								newIvaMn);
-						fileWriterControl.write(controlLine);
-						// generar linea 1
-						firstLine = replaceTotalsFromFirstLine(firstLine, newTotalMn, newIvaMn);
-						//generar linea 2
-						lineTwo = replaceTotalsFromLineTwo(lineTwo, newTotalMn, newIvaMn);
-						// generar linea 7
-						lineSeven = replaceIvaFromLineSeven(lineSeven, newIvaMn);
-						// generar linea 9
-						if (!lineNine.isEmpty()) {
-							lineNine = replaceIvaFromLineNine(lineNine, newIvaMn);
+					if(tasa.compareTo(BigDecimal.ZERO) != 0){
+						// calcula iva
+						newIvaMn = newTotalMn.multiply(tasa).divide(new BigDecimal(100));
+						newIvaMn = newIvaMn.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+						if (ivaMnOriginal.compareTo(newIvaMn) != 0) {
+							String[] lineOne = firstLine.split("\\|");
+							// guardar NumTarjeta, TotalMn e ivaMn en control file
+							String controlLine = generateControlLine(lineOne[4], lineOne[5], newTotalMn, lineOne[6],
+									newIvaMn);
+							fileWriterControl.write(controlLine);
+							// generar linea 1
+							firstLine = replaceTotalsFromFirstLine(firstLine, newTotalMn, newIvaMn);
+							//generar linea 2
+							lineTwo = replaceTotalsFromLineTwo(lineTwo, newTotalMn, newIvaMn);
+							// generar linea 7
+							lineSeven = replaceIvaFromLineSeven(lineSeven, newIvaMn);
+							// generar linea 9
+							if (!lineNine.isEmpty()) {
+								lineNine = replaceIvaFromLineNine(lineNine, newIvaMn);
+							}
 						}
 					}
 

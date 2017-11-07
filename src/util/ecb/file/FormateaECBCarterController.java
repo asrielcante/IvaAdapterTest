@@ -124,20 +124,22 @@ public class FormateaECBCarterController {
 							ecbCount++;
 
 							if (!firstLoop) {
-								//calcular iva conceptos fuera de la lista
-								ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
-								ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-								//calcular ivaB
-								ivaB = ivaMnOriginal.subtract(ivaA);
-								//calcular monto de conceptos gravados
-								montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
-								BigDecimal newTotal = (montoConceptosGrav.add(totalConceptsA))
-										.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-								
-								if (totalMnOriginal.compareTo(newTotal) != 0) {
-									//cambiar montos de conceptos informados
-									lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
-								}
+								if(tasa.compareTo(BigDecimal.ZERO) != 0){
+									//calcular iva conceptos fuera de la lista
+									ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
+									ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+									//calcular ivaB
+									ivaB = ivaMnOriginal.subtract(ivaA);
+									//calcular monto de conceptos gravados
+									montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
+									BigDecimal newTotal = (montoConceptosGrav.add(totalConceptsA))
+											.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+									
+									if (totalMnOriginal.compareTo(newTotal) != 0) {
+										//cambiar montos de conceptos informados
+										lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+									}
+								}								
 
 								fileWriter.write(firstLine + "\n" 
 								+ fileBlockOne.toString() 
@@ -176,19 +178,21 @@ public class FormateaECBCarterController {
 				}
 				if (ecbWritten < ecbCount) {
 					System.out.println("Escribiendo ultimo ECB");
-					//calcular iva conceptos fuera de la lista
-					ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
-					ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-					//calcular ivaB
-					ivaB = ivaMnOriginal.subtract(ivaA);
-					//calcular monto de conceptos gravados
-					montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
-					BigDecimal newTotal = (montoConceptosGrav.add(totalConceptsA))
-							.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-					
-					if (totalMnOriginal.compareTo(newTotal) != 0) {
-						//cambiar montos de conceptos informados
-						lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+					if(tasa.compareTo(BigDecimal.ZERO) != 0){
+						//calcular iva conceptos fuera de la lista
+						ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
+						ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+						//calcular ivaB
+						ivaB = ivaMnOriginal.subtract(ivaA);
+						//calcular monto de conceptos gravados
+						montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
+						BigDecimal newTotal = (montoConceptosGrav.add(totalConceptsA))
+								.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+						
+						if (totalMnOriginal.compareTo(newTotal) != 0) {
+							//cambiar montos de conceptos informados
+							lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+						}
 					}
 
 					fileWriter.write(firstLine + "\n" 

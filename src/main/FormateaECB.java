@@ -36,8 +36,8 @@ public class FormateaECB {
 				}
 			}else if(filenames[i].trim().equalsIgnoreCase("CFDPTCARTER")
 					|| filenames[i].trim().equalsIgnoreCase("CFDPTSOFOMC")) {//ajuste para carter
+				continua = false;
 				if(!ecbCarterUtil.processECBTxtFile(filenames[i].trim() + date)){
-					continua = false;
 					System.out.println("Error al procesar carter: " + filenames[i].trim());
 				}
 			}

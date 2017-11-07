@@ -188,7 +188,7 @@ public class FormateaECBCarterController {
 					
 					if (totalMnOriginal.compareTo(newTotal) != 0) {
 						//cambiar montos de conceptos informados
-						lineSixSb = processSixLines(lineSixList, totalMnOriginal, totalConceptsA);
+						lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
 					}
 
 					fileWriter.write(firstLine + "\n" 

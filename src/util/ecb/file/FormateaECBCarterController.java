@@ -126,18 +126,29 @@ public class FormateaECBCarterController {
 							if (!firstLoop) {
 								if(tasa.compareTo(BigDecimal.ZERO) != 0){
 									//calcular iva conceptos fuera de la lista
-									ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
-									ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-									//calcular ivaB
-									ivaB = ivaMnOriginal.subtract(ivaA);
-									//calcular monto de conceptos gravados
-									montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
-									BigDecimal newTotal = (montoConceptosGrav.add(totalConceptsA))
-											.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+									BigDecimal ivaPaso0 = (totalMnOriginal.multiply(tasa)).divide(new BigDecimal(100));
+									ivaPaso0  = ivaPaso0.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 									
-									if (totalMnOriginal.compareTo(newTotal) != 0) {
-										//cambiar montos de conceptos informados
-										lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+									if(ivaPaso0.compareTo(ivaMnOriginal) != 0){
+										ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
+										ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+										//calcular ivaB
+										ivaB = ivaMnOriginal.subtract(ivaA);
+										//calcular monto de conceptos gravados
+										montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
+										
+										BigDecimal montoConceptosGravRounded = montoConceptosGrav
+												.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+										BigDecimal newTotal = (montoConceptosGravRounded.add(totalConceptsA))
+												.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+										
+										System.out.println("LOGREDONDEO: montoCGravados: "+ montoConceptosGravRounded.toString() 
+										+ " -compare- newTotal: " + newTotal.toString() + " - totalOriginal: " + totalMnOriginal.toString());
+										
+										if (totalMnOriginal.compareTo(newTotal) != 0) {
+											//cambiar montos de conceptos informados
+											lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+										}
 									}
 								}								
 
@@ -180,18 +191,29 @@ public class FormateaECBCarterController {
 					System.out.println("Escribiendo ultimo ECB");
 					if(tasa.compareTo(BigDecimal.ZERO) != 0){
 						//calcular iva conceptos fuera de la lista
-						ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
-						ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-						//calcular ivaB
-						ivaB = ivaMnOriginal.subtract(ivaA);
-						//calcular monto de conceptos gravados
-						montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
-						BigDecimal newTotal = (montoConceptosGrav.add(totalConceptsA))
-								.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+						BigDecimal ivaPaso0 = (totalMnOriginal.multiply(tasa)).divide(new BigDecimal(100));
+						ivaPaso0  = ivaPaso0.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 						
-						if (totalMnOriginal.compareTo(newTotal) != 0) {
-							//cambiar montos de conceptos informados
-							lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+						if(ivaPaso0.compareTo(ivaMnOriginal) != 0){
+							ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
+							ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+							//calcular ivaB
+							ivaB = ivaMnOriginal.subtract(ivaA);
+							//calcular monto de conceptos gravados
+							montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
+							
+							BigDecimal montoConceptosGravRounded = montoConceptosGrav
+									.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+							BigDecimal newTotal = (montoConceptosGravRounded.add(totalConceptsA))
+									.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+							
+							System.out.println("LOGREDONDEO: montoCGravados: "+ montoConceptosGravRounded.toString() 
+							+ " -compare- newTotal: " + newTotal.toString() + " - totalOriginal: " + totalMnOriginal.toString());
+							
+							if (totalMnOriginal.compareTo(newTotal) != 0) {
+								//cambiar montos de conceptos informados
+								lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+							}
 						}
 					}
 

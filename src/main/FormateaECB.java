@@ -36,14 +36,14 @@ public class FormateaECB {
 				}
 			}else if(filenames[i].trim().equalsIgnoreCase("CFDPTCARTER")
 					|| filenames[i].trim().equalsIgnoreCase("CFDPTSOFOMC")) {//ajuste para carter
-				continua = false;
 				if(!ecbCarterUtil.processECBTxtFile(filenames[i].trim() + date)){
+					continua = false;
 					System.out.println("Error al procesar carter: " + filenames[i].trim());
 				}
 			}
 			
-			if(continua){//ajuste iva para todas las interfaces
-				if(!ecbIvaUtil.processECBTxtFile(filenames[i].trim().trim() + date)){
+			if(continua){//ajuste iva para todas las interfaces -carter no ajusta iva
+				if(!ecbIvaUtil.processECBTxtFile(filenames[i].trim(), date)){
 					System.out.println("Error al procesar iva: " + filenames[i].trim().trim());
 				}
 			}

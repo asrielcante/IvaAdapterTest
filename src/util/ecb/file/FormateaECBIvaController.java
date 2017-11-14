@@ -142,7 +142,7 @@ public class FormateaECBIvaController {
 												String[] lineOne = firstLine.split("\\|");
 												// guardar NumTarjeta, TotalMn e
 												// ivaMn en control file
-												String controlLine = generateControlLine(lineOne[4], lineOne[5],
+												String controlLine = generateControlLine(numCta, lineOne[4], lineOne[5],
 														newTotalMn, lineOne[6], newIvaMn);
 												fileWriterControl.write(controlLine);
 												// generar linea 1
@@ -262,7 +262,7 @@ public class FormateaECBIvaController {
 									String[] lineOne = firstLine.split("\\|");
 									// guardar NumTarjeta, TotalMn e
 									// ivaMn en control file
-									String controlLine = generateControlLine(lineOne[4], lineOne[5],
+									String controlLine = generateControlLine(numCta, lineOne[4], lineOne[5],
 											newTotalMn, lineOne[6], newIvaMn);
 									fileWriterControl.write(controlLine);
 									// generar linea 1
@@ -460,7 +460,7 @@ public class FormateaECBIvaController {
 		return controlLineSb.toString();
 	}
 
-	private String generateControlLine(String NumTarjeta, String totalMnOriginalVal, BigDecimal newTotalMnVal,
+	private String generateControlLine(String NumCuenta, String NumTarjeta, String totalMnOriginalVal, BigDecimal newTotalMnVal,
 			String ivaMnOriginalVal, BigDecimal newIvaMnVal) {
 
 		StringBuilder controlLineSb = new StringBuilder();
@@ -468,6 +468,7 @@ public class FormateaECBIvaController {
 		newTotalMnVal = newTotalMnVal.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 		newIvaMnVal = newIvaMnVal.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 
+		controlLineSb.append(NumCuenta + "|");
 		controlLineSb.append(NumTarjeta + "|");
 		controlLineSb.append(totalMnOriginalVal + "|");
 		controlLineSb.append(newTotalMnVal.toString() + "|");

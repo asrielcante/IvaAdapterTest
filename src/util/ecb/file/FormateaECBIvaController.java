@@ -120,6 +120,17 @@ public class FormateaECBIvaController {
 						if (lineNum == 1) {// linea 1
 
 							if (!firstLoop) {
+								boolean exception = false;
+								String ecbBakup = firstLine + "\n" + lineTwo + "\n" + fileBlockOne.toString() + lineSeven
+										+ "\n" + (lineEigth.isEmpty() ? "" : lineEigth + "\n")
+										+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
+										+ lineElevenSb.toString();
+								try{
+									firstLine = truncateExcangeFromFirstLine(firstLine);
+								}catch(Exception e){
+									ecbError.append("-error:Error al convertir tipo de cambio a dos decimales\n");
+								}
+								
 								if (ecbError.toString().isEmpty()) {
 									if (tasa.compareTo(BigDecimal.ZERO) != 0) {
 										try {
@@ -148,17 +159,22 @@ public class FormateaECBIvaController {
 										} catch (Exception e) {
 											System.out.println(ecbCount.toString() + "---Excepcion al hacer calculos en ECB numero de cuenta: "
 													+ numCta);
+											exception = true;
 										}
 									}
 								} else {
 									System.out.println(ecbCount.toString() + "---Errores en ECB numero de cuenta: " + numCta);
 									System.out.println(ecbError.toString());
 								}
-
-								fileWriter.write(firstLine + "\n" + lineTwo + "\n" + fileBlockOne.toString() + lineSeven
-										+ "\n" + (lineEigth.isEmpty() ? "" : lineEigth + "\n")
-										+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
-										+ lineElevenSb.toString());
+								
+								if(!exception){
+									fileWriter.write(firstLine + "\n" + lineTwo + "\n" + fileBlockOne.toString() + lineSeven
+											+ "\n" + (lineEigth.isEmpty() ? "" : lineEigth + "\n")
+											+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
+											+ lineElevenSb.toString());
+								}else{
+									fileWriter.write(ecbBakup);
+								}
 
 								ecbWritten = ecbWritten.add(BigInteger.ONE);
 								resetECB();
@@ -167,11 +183,7 @@ public class FormateaECBIvaController {
 							ecbCount = ecbCount.add(BigInteger.ONE);
 							ecbError = new StringBuilder();
 							firstLine = strLine;
-							try{
-								firstLine = truncateExcangeFromFirstLine(strLine);
-							}catch(Exception e){
-								ecbError.append("-error:Error al convertir tipo de cambio a dos decimales\n");
-							}
+							
 							try {
 								totalMnOriginal = new BigDecimal(arrayValues[5].trim());
 							} catch (Exception e) {
@@ -228,12 +240,24 @@ public class FormateaECBIvaController {
 				if (ecbWritten.compareTo(ecbCount) != 0) {// escribir ultimo ecb
 					System.out.println("Escribiendo ultimo ECB - Formatea IVA");
 
+					boolean exception = false;
+					String ecbBakup = firstLine + "\n" + lineTwo + "\n" + fileBlockOne.toString() + lineSeven
+							+ "\n" + (lineEigth.isEmpty() ? "" : lineEigth + "\n")
+							+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
+							+ lineElevenSb.toString();
+					try{
+						firstLine = truncateExcangeFromFirstLine(firstLine);
+					}catch(Exception e){
+						ecbError.append("-error:Error al convertir tipo de cambio a dos decimales\n");
+					}
+					
 					if (ecbError.toString().isEmpty()) {
 						if (tasa.compareTo(BigDecimal.ZERO) != 0) {
 							try {
 								// calcula iva
 								newIvaMn = newTotalMn.multiply(tasa).divide(new BigDecimal(100));
 								newIvaMn = newIvaMn.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+
 								if (ivaMnOriginal.compareTo(newIvaMn) != 0) {
 									String[] lineOne = firstLine.split("\\|");
 									// guardar NumTarjeta, TotalMn e
@@ -255,17 +279,22 @@ public class FormateaECBIvaController {
 							} catch (Exception e) {
 								System.out.println(ecbCount.toString() + "---Excepcion al hacer calculos en ECB numero de cuenta: "
 										+ numCta);
+								exception = true;
 							}
 						}
 					} else {
 						System.out.println(ecbCount.toString() + "---Errores en ECB numero de cuenta: " + numCta);
 						System.out.println(ecbError.toString());
 					}
-
-					fileWriter.write(firstLine + "\n" + lineTwo + "\n" + fileBlockOne.toString() + lineSeven
-							+ "\n" + (lineEigth.isEmpty() ? "" : lineEigth + "\n")
-							+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
-							+ lineElevenSb.toString());
+					
+					if(!exception){
+						fileWriter.write(firstLine + "\n" + lineTwo + "\n" + fileBlockOne.toString() + lineSeven
+								+ "\n" + (lineEigth.isEmpty() ? "" : lineEigth + "\n")
+								+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
+								+ lineElevenSb.toString());
+					}else{
+						fileWriter.write(ecbBakup);
+					}
 
 					ecbWritten = ecbWritten.add(BigInteger.ONE);
 					resetECB();
@@ -331,8 +360,7 @@ public class FormateaECBIvaController {
 		}
 		String lastChar = originalLine.substring(originalLine.length() - 1);
 		if (!lastChar.equals("|")) {
-			controlLineSb.setLength(controlLineSb.length() - 1);// remove last
-																// pipe
+			controlLineSb.setLength(controlLineSb.length() - 1);// remove last pipe
 		}
 
 		return controlLineSb.toString();
@@ -357,8 +385,7 @@ public class FormateaECBIvaController {
 		}
 		String lastChar = originalLine.substring(originalLine.length() - 1);
 		if (!lastChar.equals("|")) {
-			controlLineSb.setLength(controlLineSb.length() - 1);// remove last
-																// pipe
+			controlLineSb.setLength(controlLineSb.length() - 1);// remove last pipe
 		}
 
 		return controlLineSb.toString();
@@ -385,8 +412,7 @@ public class FormateaECBIvaController {
 
 		String lastChar = originalLine.substring(originalLine.length() - 1);
 		if (!lastChar.equals("|")) {
-			controlLineSb.setLength(controlLineSb.length() - 1);// remove last
-																// pipe
+			controlLineSb.setLength(controlLineSb.length() - 1);// remove last pipe
 		}
 
 		return controlLineSb.toString();
@@ -407,8 +433,7 @@ public class FormateaECBIvaController {
 
 		String lastChar = originalLine.substring(originalLine.length() - 1);
 		if (!lastChar.equals("|")) {
-			controlLineSb.setLength(controlLineSb.length() - 1);// remove last
-																// pipe
+			controlLineSb.setLength(controlLineSb.length() - 1);// remove last pipe
 		}
 
 		return controlLineSb.toString();
@@ -429,8 +454,7 @@ public class FormateaECBIvaController {
 
 		String lastChar = originalLine.substring(originalLine.length() - 1);
 		if (!lastChar.equals("|")) {
-			controlLineSb.setLength(controlLineSb.length() - 1);// remove last
-																// pipe
+			controlLineSb.setLength(controlLineSb.length() - 1);// remove last pipe
 		}
 
 		return controlLineSb.toString();

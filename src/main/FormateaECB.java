@@ -14,15 +14,17 @@ public class FormateaECB {
 //		args[0] = "CFDLMPAMPAS,CFDLMPAMPAA";
 //		args[1] = "20171101";
 		
-		String[] filenames = args[0].split(",");
-		String date = args[1].trim();
-		
-		System.out.println("names: "+args[0]);
-		System.out.println("date: "+args[1]);
-		
 		FormateaECBPampaController ecbPampaUtil = new FormateaECBPampaController();
 		FormateaECBIvaController ecbIvaUtil = new FormateaECBIvaController();
 		FormateaECBCarterController ecbCarterUtil = new FormateaECBCarterController();
+		
+		String[] filenames = args[0].split(",");
+		String date = args[1].trim();
+		String timeStamp = args[2].trim();
+		
+		System.out.println("names: "+args[0]);
+		System.out.println("date: "+args[1]);
+		System.out.println("timestamp: "+args[2]);
 		
 		for(int i = 0; i < filenames.length; i ++){
 			
@@ -30,20 +32,20 @@ public class FormateaECB {
 			
 			if(filenames[i].trim().equalsIgnoreCase("CFDLMPAMPAS")
 					|| filenames[i].trim().equalsIgnoreCase("CFDLMPAMPAA")){//ajuste lineas 6 para pampa
-				if(!ecbPampaUtil.processECBTxtFile(filenames[i].trim() + date)){
+				if(!ecbPampaUtil.processECBTxtFile(filenames[i].trim() + date, timeStamp)){
 					continua = false;
 					System.out.println("Error al procesar pampa: " + filenames[i].trim());
 				}
 			}else if(filenames[i].trim().equalsIgnoreCase("CFDPTCARTER")
 					|| filenames[i].trim().equalsIgnoreCase("CFDPTSOFOMC")) {//ajuste para carter
 				continua = false;
-				if(!ecbCarterUtil.processECBTxtFile(filenames[i].trim() + date)){
+				if(!ecbCarterUtil.processECBTxtFile(filenames[i].trim() + date, timeStamp)){
 					System.out.println("Error al procesar carter: " + filenames[i].trim());
 				}
 			}
 			
 			if(continua){//ajuste iva para todas las interfaces - iva de carter se ajusta en el paso anterior
-				if(!ecbIvaUtil.processECBTxtFile(filenames[i].trim() + date)){
+				if(!ecbIvaUtil.processECBTxtFile(filenames[i].trim() + date, timeStamp)){
 					System.out.println("Error al procesar iva: " + filenames[i].trim().trim());
 				}
 			}

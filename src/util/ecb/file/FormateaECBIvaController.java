@@ -52,7 +52,7 @@ public class FormateaECBIvaController {
 
 	}
 
-	public boolean processECBTxtFile(String fileName) {
+	public boolean processECBTxtFile(String fileName, String timeStamp) {
 		System.out.println("Inicia Formatea IVA - " + fileName);
 		boolean result = true;
 		try {
@@ -78,7 +78,6 @@ public class FormateaECBIvaController {
 				br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 				String strLine;
 
-				String timeStamp = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 				outputFile = new File(PathECBEntrada + "GENERATED_" + fileName + filesExtension);
 				outputControlFile = new File(PathECBSalida + fileName + "_CONTROL_" + timeStamp + filesExtension);
 
@@ -193,7 +192,8 @@ public class FormateaECBIvaController {
 								ivaMnOriginal = new BigDecimal(arrayValues[6].trim());
 							} catch (Exception e) {
 								ecbError.append("-error: no se pudo leer el iva informado en linea 1\n");
-							}try{
+							}
+							try{
 								numCta = arrayValues[2].trim();
 							}catch(Exception e){
 								numCta = "NumeroDefault";
@@ -220,15 +220,14 @@ public class FormateaECBIvaController {
 							lineEigth = strLine;
 						} else if (lineNum == 9) {// linea 9
 							lineNine = strLine;
-							if (arrayValues.length >= 3) {
+							try {
 								if (arrayValues[1].equalsIgnoreCase("IVA")) {
-									try {
-										tasa = new BigDecimal(arrayValues[2].trim());
-									} catch (Exception e) {
-										ecbError.append("-error: No se pudo leer el valor de tasa\n");
-									}
+									tasa = new BigDecimal(arrayValues[2].trim());
 								}
+							} catch (Exception e) {
+								ecbError.append("-error: No se pudo leer el valor de tasa\n");
 							}
+
 						} else if (lineNum == 10) {// linea 10
 							lineTen = strLine;
 						} else if (lineNum == 11) {// linea 11

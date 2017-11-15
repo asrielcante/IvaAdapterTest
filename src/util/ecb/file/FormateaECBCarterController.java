@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
@@ -46,13 +47,11 @@ public class FormateaECBCarterController {
 
 	List<String> carterConceptList = null;
 
-	String documentType = null;
-
 	public FormateaECBCarterController() {
 
 	}
 
-	public boolean processECBTxtFile(String fileName) {
+	public boolean processECBTxtFile(String fileName, String timeStamp) {
 		System.out.println("Inicia Formatea CARTER - " + fileName);
 		boolean result = true;
 		try {
@@ -111,8 +110,10 @@ public class FormateaECBCarterController {
 				lineSixList = new ArrayList<String>();
 
 				boolean firstLoop = true;
-				int ecbCount = 0;
-				int ecbWritten = 0;
+				BigInteger ecbCount = BigInteger.ZERO;
+				BigInteger ecbWritten = BigInteger.ZERO;
+				StringBuilder ecbError = new StringBuilder();
+				String numCta = "NumeroDefault";
 				while ((strLine = br.readLine()) != null) {
 					strLine = strLine.trim();
 					
@@ -121,65 +122,111 @@ public class FormateaECBCarterController {
 						int lineNum = Integer.parseInt(arrayValues[0]);
 
 						if (lineNum == 1) {// linea 1
-							ecbCount++;
 
 							if (!firstLoop) {
-								if(tasa.compareTo(BigDecimal.ZERO) != 0){
-									//calcular iva conceptos fuera de la lista
-									BigDecimal ivaPaso0 = (totalMnOriginal.multiply(tasa)).divide(new BigDecimal(100));
-									ivaPaso0  = ivaPaso0.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-									
-									if(ivaPaso0.compareTo(ivaMnOriginal) != 0){
-										ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
-										ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-										//calcular ivaB
-										ivaB = ivaMnOriginal.subtract(ivaA);
-										//calcular monto de conceptos gravados
-										montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
-										
-										BigDecimal montoConceptosGravRounded = montoConceptosGrav
-												.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-										BigDecimal newTotal = (montoConceptosGravRounded.add(totalConceptsA))
-												.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-										
-										System.out.println("LOGREDONDEO: montoCGravados: "+ montoConceptosGravRounded.toString() 
-										+ " -compare- newTotal: " + newTotal.toString() + " - totalOriginal: " + totalMnOriginal.toString());
-										
-										if (totalMnOriginal.compareTo(newTotal) != 0) {
-											//cambiar montos de conceptos informados
-											lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+								boolean exception = false;
+								String ecbBakup = firstLine + "\n" 
+										+ fileBlockOne.toString() 
+										+ lineSixSb.toString()
+										+ fileBlockTwo.toString();
+								
+								try{
+									firstLine = FormateaECBIvaController.truncateExcangeFromFirstLine(firstLine);
+								}catch(Exception e){
+									ecbError.append("-error:Error al convertir tipo de cambio a dos decimales\n");
+								}
+								
+								if (ecbError.toString().isEmpty()) {
+									if(tasa.compareTo(BigDecimal.ZERO) != 0){
+										try{
+											//calcular iva conceptos fuera de la lista
+											BigDecimal ivaPaso0 = (totalMnOriginal.multiply(tasa)).divide(new BigDecimal(100));
+											ivaPaso0  = ivaPaso0.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+											
+											if(ivaPaso0.compareTo(ivaMnOriginal) != 0){
+												ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
+												ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+												//calcular ivaB
+												ivaB = ivaMnOriginal.subtract(ivaA);
+												//calcular monto de conceptos gravados
+												montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
+												
+												BigDecimal montoConceptosGravRounded = montoConceptosGrav
+														.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+												BigDecimal newTotal = (montoConceptosGravRounded.add(totalConceptsA))
+														.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+												
+												
+												if (totalMnOriginal.compareTo(newTotal) != 0) {
+													//cambiar montos de conceptos informados
+													lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+												}
+											}
+										}catch(Exception e){
+											System.out.println(ecbCount.toString() + "---Excepcion al hacer calculos en ECB numero de cuenta: "
+													+ numCta);
+											exception = true;
 										}
 									}
-								}								
+								} else {
+									System.out.println(ecbCount.toString() + "---Errores en ECB numero de cuenta: " + numCta);
+									System.out.println(ecbError.toString());
+								}
+								
+								if(!exception){
+									fileWriter.write(firstLine + "\n" 
+											+ fileBlockOne.toString() 
+											+ lineSixSb.toString()
+											+ fileBlockTwo.toString());
+								}else{
+									fileWriter.write(ecbBakup);
+								}
 
-								fileWriter.write(firstLine + "\n" 
-								+ fileBlockOne.toString() 
-								+ lineSixSb.toString()
-								+ fileBlockTwo.toString());
-								ecbWritten++;
-
+								ecbWritten = ecbWritten.add(BigInteger.ONE);
 								resetECB();
 							}
 
+							ecbCount = ecbCount.add(BigInteger.ONE);
+							ecbError = new StringBuilder();
 							firstLine = strLine;
-							totalMnOriginal = new BigDecimal(arrayValues[5]);
-							ivaMnOriginal = new BigDecimal(arrayValues[6]);
+							
+							try {
+								totalMnOriginal = new BigDecimal(arrayValues[5].trim());
+							} catch (Exception e) {
+								ecbError.append("-error: no se pudo leer el subtotal\n");
+							}
+							try {
+								ivaMnOriginal = new BigDecimal(arrayValues[6].trim());
+							} catch (Exception e) {
+								ecbError.append("-error: no se pudo leer el iva informado en linea 1\n");
+							}
+							try{
+								numCta = arrayValues[2].trim();
+							}catch(Exception e){
+								numCta = "NumeroDefault";
+								ecbError.append("-error: no se pudo leer el numero de cuenta\n");
+							}
 
 						} else if (lineNum > 1 && lineNum < 6) {// lineas 2 a 5
-							if (lineNum == 2) {
-								documentType = arrayValues[1];
-							}
 							fileBlockOne.append(strLine + "\n");
 						} else if (lineNum == 6) {// linea 6
 							lineSixSb.append(strLine + "\n");
 							lineSixList.add(strLine);
-							if(!listContains(carterConceptList, arrayValues[1].trim())){
-								totalConceptsA = totalConceptsA.add(new BigDecimal(arrayValues[2].trim()));
+							try{
+								if(!listContains(carterConceptList, arrayValues[1].trim())){
+									totalConceptsA = totalConceptsA.add(new BigDecimal(arrayValues[2].trim()));
+								}
+							}catch(Exception e){
+								ecbError.append("-error: no se pudo hacer la suma de importes de conceptos\n");
 							}
 						} else if (lineNum > 6) {// lineas 7 a 11
 							if(lineNum == 9){
-								if (arrayValues[1].equalsIgnoreCase("IVA")) {
-									tasa = new BigDecimal(arrayValues[2]);
+								try {
+									if (arrayValues[1].equalsIgnoreCase("IVA")) {
+										tasa = new BigDecimal(arrayValues[2].trim());
+									}
+								} catch (Exception e) {
+									ecbError.append("-error: No se pudo leer el valor de tasa\n");
 								}
 							}
 							fileBlockTwo.append(strLine + "\n");
@@ -187,50 +234,76 @@ public class FormateaECBCarterController {
 					}
 					firstLoop = false;
 				}
-				if (ecbWritten < ecbCount) {
+				if (ecbWritten.compareTo(ecbCount) != 0) {//escribir ultimo ecb
 					System.out.println("Escribiendo ultimo ECB");
-					if(tasa.compareTo(BigDecimal.ZERO) != 0){
-						//calcular iva conceptos fuera de la lista
-						BigDecimal ivaPaso0 = (totalMnOriginal.multiply(tasa)).divide(new BigDecimal(100));
-						ivaPaso0  = ivaPaso0.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-						
-						if(ivaPaso0.compareTo(ivaMnOriginal) != 0){
-							ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
-							ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-							//calcular ivaB
-							ivaB = ivaMnOriginal.subtract(ivaA);
-							//calcular monto de conceptos gravados
-							montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
-							
-							BigDecimal montoConceptosGravRounded = montoConceptosGrav
-									.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-							BigDecimal newTotal = (montoConceptosGravRounded.add(totalConceptsA))
-									.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-							
-							System.out.println("LOGREDONDEO: montoCGravados: "+ montoConceptosGravRounded.toString() 
-							+ " -compare- newTotal: " + newTotal.toString() + " - totalOriginal: " + totalMnOriginal.toString());
-							
-							if (totalMnOriginal.compareTo(newTotal) != 0) {
-								//cambiar montos de conceptos informados
-								lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+
+					boolean exception = false;
+					String ecbBakup = firstLine + "\n" 
+							+ fileBlockOne.toString() 
+							+ lineSixSb.toString()
+							+ fileBlockTwo.toString();
+					
+					try{
+						firstLine = FormateaECBIvaController.truncateExcangeFromFirstLine(firstLine);
+					}catch(Exception e){
+						ecbError.append("-error:Error al convertir tipo de cambio a dos decimales\n");
+					}
+					
+					if (ecbError.toString().isEmpty()) {
+						if(tasa.compareTo(BigDecimal.ZERO) != 0){
+							try{
+								//calcular iva conceptos fuera de la lista
+								BigDecimal ivaPaso0 = (totalMnOriginal.multiply(tasa)).divide(new BigDecimal(100));
+								ivaPaso0  = ivaPaso0.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+								
+								if(ivaPaso0.compareTo(ivaMnOriginal) != 0){
+									ivaA = totalConceptsA.multiply(tasa).divide(new BigDecimal(100));
+									ivaA = ivaA.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+									//calcular ivaB
+									ivaB = ivaMnOriginal.subtract(ivaA);
+									//calcular monto de conceptos gravados
+									montoConceptosGrav = (ivaB.multiply(new BigDecimal(100))).divide(tasa);
+									
+									BigDecimal montoConceptosGravRounded = montoConceptosGrav
+											.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+									BigDecimal newTotal = (montoConceptosGravRounded.add(totalConceptsA))
+											.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+									
+									
+									if (totalMnOriginal.compareTo(newTotal) != 0) {
+										//cambiar montos de conceptos informados
+										lineSixSb = processSixLines(lineSixList, totalMnOriginal, montoConceptosGrav);
+									}
+								}
+							}catch(Exception e){
+								System.out.println(ecbCount.toString() + "---Excepcion al hacer calculos en ECB numero de cuenta: "
+										+ numCta);
+								exception = true;
 							}
 						}
+					} else {
+						System.out.println(ecbCount.toString() + "---Errores en ECB numero de cuenta: " + numCta);
+						System.out.println(ecbError.toString());
+					}
+					
+					if(!exception){
+						fileWriter.write(firstLine + "\n" 
+								+ fileBlockOne.toString() 
+								+ lineSixSb.toString()
+								+ fileBlockTwo.toString());
+					}else{
+						fileWriter.write(ecbBakup);
 					}
 
-					fileWriter.write(firstLine + "\n" 
-					+ fileBlockOne.toString() 
-					+ lineSixSb.toString()
-					+ fileBlockTwo.toString());
-					ecbWritten++;
-
+					ecbWritten = ecbWritten.add(BigInteger.ONE);
 					resetECB();
+					
 				}
 
 				fileWriter.close();
 				//fileWriterControl.close();
 				br.close();
 				
-				String timeStamp = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 				File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_CARTER_" + timeStamp + filesExtension);
 				if (FormateaECBPampaController.moveFile(inputFile, movedFile)) {// mover archivo original
 					// renombrar archivo generado
@@ -318,8 +391,6 @@ public class FormateaECBCarterController {
 
 		lineSixSb = new StringBuilder();
 		lineSixList = new ArrayList<String>();
-
-		documentType = null;
 	}
 
 	private void loadCarterConceptList() throws Exception {

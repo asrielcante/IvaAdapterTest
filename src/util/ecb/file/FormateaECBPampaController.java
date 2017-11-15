@@ -47,7 +47,7 @@ public class FormateaECBPampaController {
 
 	}
 
-	public boolean processECBTxtFile(String fileName) {
+	public boolean processECBTxtFile(String fileName, String timeStamp) {
 		System.out.println("Inicia Formatea PAMPA - " + fileName);
 		boolean result = true;
 		try {
@@ -134,7 +134,6 @@ public class FormateaECBPampaController {
 
 				fileWriter.close();
 				br.close();
-				String timeStamp = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 				File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_" + timeStamp + filesExtension);
 				if (moveFile(inputFile, movedFile)) {// mover archivo original
 					// renombrar archivo generado

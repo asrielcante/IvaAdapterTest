@@ -27,7 +27,7 @@ pathECBSalida="/home/linuxlite/shell_scripts/ECBIVA/CFDProcesados/";
 pathECBCatalogos="/home/linuxlite/shell_scripts/ECBIVA/interfaces/";
 
 #funciones
-function validaSalidas(){
+validaSalidas(){
 	#. ${DIR_UTIL}/encab_ini.sh valida_salidas.sh_$1_$2_$3
 	
 	echo "entra a validaSalidas: "_$1_$2_$3

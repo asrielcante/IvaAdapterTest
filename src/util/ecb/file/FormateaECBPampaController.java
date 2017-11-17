@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -79,9 +80,10 @@ public class FormateaECBPampaController {
 				lineSixSb = new StringBuilder();
 
 				boolean firstLoop = true;
-				int ecbCount = 0;
-				int ecbWritten = 0;
-				int ecbOmitted = 0;
+				BigInteger ecbCount = BigInteger.ZERO;
+				BigInteger ecbWritten = BigInteger.ZERO;
+				BigInteger ecbOmitted = BigInteger.ZERO;
+				
 				while ((strLine = br.readLine()) != null) {
 					strLine = strLine.trim();
 					if (!strLine.equals("")) {
@@ -89,17 +91,17 @@ public class FormateaECBPampaController {
 						int lineNum = Integer.parseInt(arrayValues[0]);
 
 						if (lineNum == 1) {// linea 1
-							ecbCount++;
 
 							if (!firstLoop) {
 								if (!lineSixSb.toString().isEmpty()) {
 									fileWriter.write(
 											fileBlockOne.toString() + lineSixSb.toString() + fileBlockTwo.toString());
-									ecbOmitted++;
+									ecbOmitted = ecbOmitted.add(BigInteger.ONE);
 								}
-								ecbWritten++;
+								ecbWritten = ecbWritten.add(BigInteger.ONE);
 								resetECB();
 							}
+							ecbCount = ecbCount.add(BigInteger.ONE);
 							fileBlockOne.append(strLine + "\n");
 
 						} else if (lineNum > 1 && lineNum < 6) {// lineas 2 a 5
@@ -116,13 +118,13 @@ public class FormateaECBPampaController {
 					}
 					firstLoop = false;
 				}
-				if (ecbWritten < ecbCount) {
+				if (ecbWritten.compareTo(ecbCount) != 0) {
 					System.out.println("Escribiendo ultimo ECB - Formatea PAMPA");
 					if (!lineSixSb.toString().isEmpty()) {
 						fileWriter.write(fileBlockOne.toString() + lineSixSb.toString() + fileBlockTwo.toString());
-						ecbOmitted++;
+						ecbOmitted = ecbOmitted.add(BigInteger.ONE);
 					}
-					ecbWritten++;
+					ecbWritten = ecbWritten.add(BigInteger.ONE);
 					resetECB();
 				}
 

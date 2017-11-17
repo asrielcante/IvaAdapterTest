@@ -49,10 +49,10 @@ public class FormateaECB {
 			}
 			
 			if(continua && !carter){//ajuste iva para todas las interfaces - iva de carter se ajusta en el paso anterior
-				if(!ecbIvaUtil.processECBTxtFile(filenames[i].trim() + date, timeStamp)){
-					System.out.println("Error al procesar iva: " + filenames[i].trim().trim());
-					continua = false;
-				}
+//				if(!ecbIvaUtil.processECBTxtFile(filenames[i].trim() + date, timeStamp)){
+//					System.out.println("Error al procesar iva: " + filenames[i].trim().trim());
+//					continua = false;
+//				}
 			}
 			
 			if (continua){ //nuevo ajuste iva para todas las interfaces

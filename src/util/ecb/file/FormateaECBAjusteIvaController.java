@@ -118,31 +118,29 @@ public class FormateaECBAjusteIvaController {
 						int lineNum = Integer.parseInt(arrayValues[0]);
 
 						if (lineNum == 1) {// linea 1
-
 							if (!firstLoop) {
 								boolean exception = false;
-								String ecbBakup = firstLine + "\n" + "\n" + fileBlockOne.toString() + lineSixSb.toString() 
+								String ecbBakup = firstLine + "\n" + fileBlockOne.toString() + lineSixSb.toString() 
 										+ lineSeven + "\n" + (lineEigth.isEmpty() ? "" : lineEigth + "\n")
 										+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
 										+ lineElevenSb.toString();
 								
 								if (ecbError.toString().isEmpty()) {
-									lineSixSb = adjustIvaFromLinesSix(lineSixSb);
 									if (tasa.compareTo(BigDecimal.ZERO) != 0) {
 										try {
+											if(ivaMnOriginal.compareTo(BigDecimal.ZERO) != 0){
+												lineSixSb = adjustIvaFromLinesSix(lineSixSb);
+												System.out.println("iva original: " + ivaMnOriginal.toString());
+												System.out.println("nuevo iva resultado: " + newIvaMn.toString());
 											
-											if (ivaMnOriginal.compareTo(newIvaMn) != 0) {
-												String[] lineOne = firstLine.split("\\|");
-												// guardar NumTarjeta, ivaMn en control file
-												String controlLine = generateControlLine(numCta, lineOne[4], lineOne[6], newIvaMn);
-												fileWriterControl.write(controlLine);
-												// generar linea 1
-												firstLine = replaceIvaFromFirstLine(firstLine, newIvaMn);
-												// generar linea 7
-												lineSeven = replaceIvaFromLineSeven(lineSeven, newIvaMn);
-												// generar linea 9
-												if (!lineNine.isEmpty()) {
-													lineNine = replaceIvaFromLineNine(lineNine, newIvaMn);
+												if(newIvaMn.compareTo(BigDecimal.ZERO) > 0 && newIvaMn.compareTo(ivaMnOriginal) == 0){
+													// guardar en control file
+													System.out.println(ecbCount.toString() + " - iva ajustado ESCRIBE CONTROL: " + numCta);
+													String[] lineOne = firstLine.split("\\|");
+													String controlLine = generateControlLine(numCta, lineOne[4], "iva ajustado", newIvaMn);
+													fileWriterControl.write(controlLine);
+												}else{
+													System.out.println(ecbCount.toString() + " - iva NO ajustado: " + numCta);
 												}
 											}
 										} catch (Exception e) {
@@ -158,7 +156,7 @@ public class FormateaECBAjusteIvaController {
 								}
 								
 								if(!exception){
-									fileWriter.write(firstLine + "\n" + "\n" + fileBlockOne.toString() + lineSixSb.toString() 
+									fileWriter.write(firstLine + "\n" + fileBlockOne.toString() + lineSixSb.toString() 
 											+ lineSeven + "\n" + (lineEigth.isEmpty() ? "" : lineEigth + "\n")
 											+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
 											+ lineElevenSb.toString());
@@ -216,12 +214,53 @@ public class FormateaECBAjusteIvaController {
 				if (ecbWritten.compareTo(ecbCount) != 0) {// escribir ultimo ecb
 					System.out.println("Escribiendo ultimo ECB - Ajuste IVA");
 
-//					boolean exception = false;
-
+					boolean exception = false;
+					String ecbBakup = firstLine + "\n" + fileBlockOne.toString() + lineSixSb.toString() 
+							+ lineSeven + "\n" + (lineEigth.isEmpty() ? "" : lineEigth + "\n")
+							+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
+							+ lineElevenSb.toString();
+					
+					if (ecbError.toString().isEmpty()) {
+						if (tasa.compareTo(BigDecimal.ZERO) != 0) {
+							try {
+								if(ivaMnOriginal.compareTo(BigDecimal.ZERO) != 0){
+									lineSixSb = adjustIvaFromLinesSix(lineSixSb);
+									System.out.println("iva original: " + ivaMnOriginal.toString());
+									System.out.println("nuevo iva resultado: " + newIvaMn.toString());
+								
+									if(newIvaMn.compareTo(BigDecimal.ZERO) > 0 && newIvaMn.compareTo(ivaMnOriginal) == 0){
+										// guardar en control file
+										System.out.println(ecbCount.toString() + " - iva ajustado ESCRIBE CONTROL: " + numCta);
+										String[] lineOne = firstLine.split("\\|");
+										String controlLine = generateControlLine(numCta, lineOne[4], "iva ajustado", newIvaMn);
+										fileWriterControl.write(controlLine);
+									}else{
+										System.out.println(ecbCount.toString() + " - iva NO ajustado: " + numCta);
+									}
+								}
+							} catch (Exception e) {
+								System.out.println(ecbCount.toString() + "---Excepcion al ajustar iva en ECB numero de cuenta: "
+										+ numCta);
+								exception = true;
+								e.printStackTrace();
+							}
+						}
+					} else {
+						System.out.println(ecbCount.toString() + "---Errores en ECB numero de cuenta: " + numCta);
+						System.out.println(ecbError.toString());
+					}
+					
+					if(!exception){
+						fileWriter.write(firstLine + "\n" + fileBlockOne.toString() + lineSixSb.toString() 
+								+ lineSeven + "\n" + (lineEigth.isEmpty() ? "" : lineEigth + "\n")
+								+ (lineNine.isEmpty() ? "" : lineNine + "\n") + lineTen + "\n"
+								+ lineElevenSb.toString());
+					}else{
+						fileWriter.write(ecbBakup);
+					}
 
 					ecbWritten = ecbWritten.add(BigInteger.ONE);
 					resetECB();
-				
 				}
 
 				fileWriter.close();
@@ -327,7 +366,7 @@ public class FormateaECBAjusteIvaController {
 		return controlLineSb.toString();
 	}
 
-	private String generateControlLine(String NumCuenta, String NumTarjeta, String ivaMnOriginalVal, BigDecimal newIvaMnVal) {
+	private String generateControlLine(String NumCuenta, String NumTarjeta, String descripcion, BigDecimal newIvaMnVal) {
 
 		StringBuilder controlLineSb = new StringBuilder();
 
@@ -335,7 +374,7 @@ public class FormateaECBAjusteIvaController {
 
 		controlLineSb.append(NumCuenta + "|");
 		controlLineSb.append(NumTarjeta + "|");
-		controlLineSb.append(ivaMnOriginalVal + "|");
+		controlLineSb.append(descripcion + "|");
 		controlLineSb.append(newIvaMnVal.toString() + "\n");
 
 		return controlLineSb.toString();
@@ -393,6 +432,7 @@ public class FormateaECBAjusteIvaController {
 			BigDecimal ajuste = new BigDecimal("0.01");
 			int loops = 1;
 			do{
+				totalIva = BigDecimal.ZERO;
 				for(String[] lineArray : sixList){
 					if(conceptRequiresIva(lineArray[1].trim())){
 						BigDecimal importe = new BigDecimal(lineArray[2].trim());
@@ -402,7 +442,7 @@ public class FormateaECBAjusteIvaController {
 					}
 				}
 				totalIva = totalIva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-				
+				System.out.println(loops + " - total iva: " + totalIva.toString());
 				if(totalIva.compareTo(ivaMnOriginal) != 0){
 					System.out.println("valor ajuste: " + ajuste.toString());
 					
@@ -424,15 +464,15 @@ public class FormateaECBAjusteIvaController {
 							minValPosition = i;
 						}
 					}
-					System.out.println("valor mayor: " + sixList.get(maxValPosition)[2]);
-					System.out.println("valor menor: " + sixList.get(minValPosition)[2]);
+//					System.out.println("valor mayor: " + sixList.get(maxValPosition)[2]);
+//					System.out.println("valor menor: " + sixList.get(minValPosition)[2]);
 					//ajuste de iva valor mayor/menor
 					BigDecimal newMaxVal = new BigDecimal(sixList.get(maxValPosition)[2]).add(ajuste)
 							.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 					BigDecimal newMinVal = new BigDecimal(sixList.get(minValPosition)[2]).subtract(ajuste)
 							.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-					System.out.println("nuevo valor mayor: " + newMaxVal.toString());
-					System.out.println("nuevo valor menor: " + newMinVal.toString());
+//					System.out.println("nuevo valor mayor: " + newMaxVal.toString());
+//					System.out.println("nuevo valor menor: " + newMinVal.toString());
 					String[] maxConcept = sixList.get(maxValPosition);
 					String[] minConcept = sixList.get(minValPosition);
 					maxConcept[2] = newMaxVal.toString();
@@ -449,6 +489,14 @@ public class FormateaECBAjusteIvaController {
 				}
 				loops++;
 			} while((totalIva.compareTo(ivaMnOriginal) != 0) && loops < 10);
+			
+		}else{
+			result = lines;
+		}
+		
+		if(newIvaMn.compareTo(BigDecimal.ZERO) > 0 && newIvaMn.compareTo(ivaMnOriginal) == 0){
+			//generar nuevas lineas 6
+			System.out.println("IVA AJUSTADO: " + newIvaMn.toString());
 			
 		}else{
 			result = lines;

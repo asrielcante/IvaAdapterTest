@@ -495,8 +495,17 @@ public class FormateaECBAjusteIvaController {
 		}
 		
 		if(newIvaMn.compareTo(BigDecimal.ZERO) > 0 && newIvaMn.compareTo(ivaMnOriginal) == 0){
+			//System.out.println("IVA AJUSTADO: " + newIvaMn.toString());
 			//generar nuevas lineas 6
-			System.out.println("IVA AJUSTADO: " + newIvaMn.toString());
+			for(String[] line : sixList){
+				result.append(line[0].trim());
+				result.append("|");
+				result.append(line[1].trim());
+				result.append("|");
+				result.append(line[2].trim());
+				result.append("|");
+				result.append("\n");
+			}
 			
 		}else{
 			result = lines;

@@ -304,68 +304,6 @@ public class FormateaECBAjusteIvaController {
 		}
 	}
 
-	private String replaceIvaFromFirstLine(String originalLine, BigDecimal newIvaMnValue) {
-		StringBuilder controlLineSb = new StringBuilder();
-		String[] originalLineArray = originalLine.split("\\|");
-		newIvaMnValue = newIvaMnValue.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-
-		for (int i = 0; i < originalLineArray.length; i++) {
-			if (i == 6) {
-				controlLineSb.append(newIvaMnValue.toString() + "|");
-			} else {
-				controlLineSb.append(originalLineArray[i] + "|");
-			}
-		}
-		String lastChar = originalLine.substring(originalLine.length() - 1);
-		if (!lastChar.equals("|")) {
-			controlLineSb.setLength(controlLineSb.length() - 1);// remove last pipe
-		}
-
-		return controlLineSb.toString();
-	}
-
-	private String replaceIvaFromLineSeven(String originalLine, BigDecimal newIvaMnValue) {
-		StringBuilder controlLineSb = new StringBuilder();
-		String[] originalLineArray = originalLine.split("\\|");
-		newIvaMnValue = newIvaMnValue.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-
-		for (int i = 0; i < originalLineArray.length; i++) {
-			if (i == 2) {
-				controlLineSb.append(newIvaMnValue.toString() + "|");
-			} else {
-				controlLineSb.append(originalLineArray[i] + "|");
-			}
-		}
-
-		String lastChar = originalLine.substring(originalLine.length() - 1);
-		if (!lastChar.equals("|")) {
-			controlLineSb.setLength(controlLineSb.length() - 1);// remove last pipe
-		}
-
-		return controlLineSb.toString();
-	}
-
-	private String replaceIvaFromLineNine(String originalLine, BigDecimal newIvaMnValue) {
-		StringBuilder controlLineSb = new StringBuilder();
-		String[] originalLineArray = originalLine.split("\\|");
-		newIvaMnValue = newIvaMnValue.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-
-		for (int i = 0; i < originalLineArray.length; i++) {
-			if (i == 3) {
-				controlLineSb.append(newIvaMnValue.toString() + "|");
-			} else {
-				controlLineSb.append(originalLineArray[i] + "|");
-			}
-		}
-
-		String lastChar = originalLine.substring(originalLine.length() - 1);
-		if (!lastChar.equals("|")) {
-			controlLineSb.setLength(controlLineSb.length() - 1);// remove last pipe
-		}
-
-		return controlLineSb.toString();
-	}
-
 	private String generateControlLine(String NumCuenta, String NumTarjeta, String descripcion, BigDecimal newIvaMnVal) {
 
 		StringBuilder controlLineSb = new StringBuilder();
@@ -420,7 +358,7 @@ public class FormateaECBAjusteIvaController {
 		StringBuilder result = new StringBuilder();
 		String[] sixArray = lines.toString().split("\\n");
 		List<String[]> sixList = new ArrayList<String[]>();
-		
+		boolean entraAjuste = false;
 		if(sixArray.length > 1){
 			
 			for(String line : sixArray){
@@ -444,6 +382,7 @@ public class FormateaECBAjusteIvaController {
 				totalIva = totalIva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 				System.out.println(loops + " - total iva: " + totalIva.toString());
 				if(totalIva.compareTo(ivaMnOriginal) != 0){
+					entraAjuste=true;
 					System.out.println("valor ajuste: " + ajuste.toString());
 					
 					BigDecimal maxValue = new BigDecimal(sixList.get(0)[2]);
@@ -484,7 +423,9 @@ public class FormateaECBAjusteIvaController {
 					ajuste = ajuste.add(new BigDecimal("0.01"));
 					
 				}else{
-					newIvaMn = totalIva;
+					if(entraAjuste){
+						newIvaMn = totalIva;
+					}
 					break;
 				}
 				loops++;

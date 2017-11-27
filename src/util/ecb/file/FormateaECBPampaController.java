@@ -130,7 +130,7 @@ public class FormateaECBPampaController {
 
 				fileWriter.close();
 				br.close();
-				File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_PAMPA_" + timeStamp + filesExtension);
+				File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_" + timeStamp + filesExtension);
 				if (moveFile(inputFile, movedFile)) {// mover archivo original
 					// renombrar archivo generado
 					if (moveFile(outputFile, new File(PathECBEntrada + fileName + filesExtension))) {

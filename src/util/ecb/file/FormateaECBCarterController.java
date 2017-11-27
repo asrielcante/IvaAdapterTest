@@ -304,7 +304,7 @@ public class FormateaECBCarterController {
 				//fileWriterControl.close();
 				br.close();
 				
-				File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_CARTER_" + timeStamp + filesExtension);
+				File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_" + timeStamp + filesExtension);
 				if (FormateaECBPampaController.moveFile(inputFile, movedFile)) {// mover archivo original
 					// renombrar archivo generado
 					if (FormateaECBPampaController.moveFile(outputFile,

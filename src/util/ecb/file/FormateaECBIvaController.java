@@ -306,8 +306,25 @@ public class FormateaECBIvaController {
 				fileWriter.close();
 				fileWriterControl.close();
 				br.close();
-				File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_IVA_" + timeStamp + filesExtension);
-				if (FormateaECBPampaController.moveFile(inputFile, movedFile)) {// mover archivo original
+				boolean rename = false;
+				File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_" + timeStamp + filesExtension);
+				if(!movedFile.exists()){
+					if (FormateaECBPampaController.moveFile(inputFile, movedFile)) {// mover archivo original
+						rename = true;
+					} else {
+						System.out.println("No se pudo mover el archivo original");
+						result = false;
+					}
+				}else{
+					if(inputFile.delete()){
+						rename = true;
+					}else{
+						System.out.println("No se pudo eliminar el archivo original");
+						result = false;
+					}
+				}
+				
+				if(rename){
 					// renombrar archivo generado
 					if (FormateaECBPampaController.moveFile(outputFile,
 							new File(PathECBEntrada + fileName + filesExtension))) {
@@ -316,9 +333,6 @@ public class FormateaECBIvaController {
 						System.out.println("No se pudo renombrar el archivo generado");
 						result = false;
 					}
-				} else {
-					System.out.println("No se pudo mover el archivo original");
-					result = false;
 				}
 
 			} else {

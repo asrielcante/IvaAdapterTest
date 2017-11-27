@@ -256,8 +256,8 @@ public class FormateaECBAjusteIvaController {
 				fileWriter.close();
 				fileWriterControl.close();
 				br.close();
-				File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_AJUSTE_" + timeStamp + filesExtension);
-				if (FormateaECBPampaController.moveFile(inputFile, movedFile)) {// mover archivo original
+				//File movedFile = new File(PathECBSalida + fileName + "ORIGINAL_AJUSTE_" + timeStamp + filesExtension);
+				if (inputFile.delete()) {// eliminar archivo original
 					// renombrar archivo generado
 					if (FormateaECBPampaController.moveFile(outputFile,
 							new File(PathECBEntrada + fileName + filesExtension))) {
@@ -267,7 +267,7 @@ public class FormateaECBAjusteIvaController {
 						result = false;
 					}
 				} else {
-					System.out.println("No se pudo mover el archivo original");
+					System.out.println("No se pudo eliminar el archivo original");
 					result = false;
 				}
 

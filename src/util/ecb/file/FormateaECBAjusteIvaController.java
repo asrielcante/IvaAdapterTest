@@ -24,6 +24,9 @@ public class FormateaECBAjusteIvaController {
 	public static String PathECBCatalogos = "/home/linuxlite/shell_scripts/ECBIVA/interfaces/";
 
 	public static String ajusteIvaConceptsFileName = "ajusteIvaConceptos.TXT";
+	List<String[]> ajusteIvaConceptList = null;
+	
+	
 	public static String filesExtension = ".TXT";
 
 	BigDecimal ivaMnOriginal;
@@ -43,8 +46,6 @@ public class FormateaECBAjusteIvaController {
 	String lineNine = null;
 	String lineTen = null;
 	String lineEleven = null;
-	
-	List<String[]> ajusteIvaConceptList = null;
 
 	public FormateaECBAjusteIvaController() {
 
@@ -54,6 +55,7 @@ public class FormateaECBAjusteIvaController {
 		System.out.println("Inicia ajuste IVA - " + fileName);
 		boolean result = true;
 		try {
+			//mapCatalogos = Util.readXLSFile(properties.getUrlArchivoCatalogs());
 			FileInputStream fileToProcess = null;
 			DataInputStream in = null;
 			BufferedReader br = null;
@@ -307,22 +309,6 @@ public class FormateaECBAjusteIvaController {
 
 		return controlLineSb.toString();
 	}
-	
-	private void loadAjusteIvaConceptList() throws Exception {
-		FileInputStream fis = new FileInputStream(PathECBCatalogos + ajusteIvaConceptsFileName);
-		DataInputStream dis = new DataInputStream(fis);
-		BufferedReader bfr = new BufferedReader(new InputStreamReader(dis, "UTF-8"));
-		String conceptLine = null;
-		ajusteIvaConceptList = new ArrayList<String[]>();
-
-		while ((conceptLine = bfr.readLine()) != null) {
-			String[] conceptArray = conceptLine.split("\\|");
-			if(conceptArray[0].trim().equals("002") && !conceptArray[1].trim().equalsIgnoreCase("Exento")){
-				ajusteIvaConceptList.add(conceptArray);
-			}
-		}
-		bfr.close();
-	}
 
 	private void resetECB() {
 		fileBlockOne = new StringBuilder();
@@ -450,5 +436,22 @@ public class FormateaECBAjusteIvaController {
 			}
 		}
 		return result;
+	}
+	
+	
+	private void loadAjusteIvaConceptList() throws Exception {
+		FileInputStream fis = new FileInputStream(PathECBCatalogos + ajusteIvaConceptsFileName);
+		DataInputStream dis = new DataInputStream(fis);
+		BufferedReader bfr = new BufferedReader(new InputStreamReader(dis, "UTF-8"));
+		String conceptLine = null;
+		ajusteIvaConceptList = new ArrayList<String[]>();
+
+		while ((conceptLine = bfr.readLine()) != null) {
+			String[] conceptArray = conceptLine.split("\\|");
+			if(conceptArray[0].trim().equals("002") && !conceptArray[1].trim().equalsIgnoreCase("Exento")){
+				ajusteIvaConceptList.add(conceptArray);
+			}
+		}
+		bfr.close();
 	}
 }

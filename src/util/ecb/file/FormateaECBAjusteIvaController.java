@@ -348,18 +348,27 @@ public class FormateaECBAjusteIvaController {
 		StringBuilder result = new StringBuilder();
 		String[] sixArray = lines.toString().split("\\n");
 		List<String[]> sixList = new ArrayList<String[]>();
+		List<String[]> OriginalSixList = new ArrayList<String[]>();
+		String lastChar = "";
 		boolean entraAjuste = false;
 		if(sixArray.length > 1){
+			
+			lastChar = sixArray[0].substring(sixArray[0].length() - 1);
+			if (!lastChar.equals("|")) {
+				lastChar = "";
+			}
 			
 			for(String line : sixArray){
 				String[] lineArray = line.split("\\|");
 				sixList.add(lineArray);
 			}
-			
+			OriginalSixList = sixList;
+					
 			BigDecimal totalIva = BigDecimal.ZERO;
-			BigDecimal ajuste = new BigDecimal("0.01");
+			BigDecimal ajuste = new BigDecimal("0.00");
 			int loops = 1;
 			do{
+				System.out.println("valor ajuste: " + ajuste.toString());
 				totalIva = BigDecimal.ZERO;
 				for(String[] lineArray : sixList){
 					if(conceptRequiresIva(lineArray[1].trim())){
@@ -370,43 +379,31 @@ public class FormateaECBAjusteIvaController {
 					}
 				}
 				totalIva = totalIva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+				System.out.println("Iva actual calculado: " + totalIva.toString());
+				System.out.println("Iva informado: " + ivaMnOriginal.toString());
 				if(totalIva.compareTo(ivaMnOriginal) != 0){
 					entraAjuste=true;
 					
-					BigDecimal maxValue = new BigDecimal(sixList.get(0)[2]);
-					BigDecimal minValue = new BigDecimal(sixList.get(0)[2]);
-					int maxValPosition = 0;
-					int minValPosition = 0;
-					//buscar posiciones max/min
-					for(int i = 0; i < sixList.size(); i ++){
-						BigDecimal currentValue = new BigDecimal(sixList.get(i)[2]);
-						//max
-						if(currentValue.compareTo(maxValue) > 0){
-							maxValue = currentValue;
-							maxValPosition = i;
-						}
-						//min
-						if(currentValue.compareTo(minValue) < 0){
-							minValue = currentValue;
-							minValPosition = i;
-						}
+					if(totalIva.compareTo(ivaMnOriginal) > 0){
+						ajuste = totalIva.subtract(ivaMnOriginal);
+					}else{
+						ajuste = ivaMnOriginal.subtract(totalIva);
 					}
-
-					//ajuste de iva valor mayor/menor
-					BigDecimal newMaxVal = new BigDecimal(sixList.get(maxValPosition)[2]).add(ajuste)
-							.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-					BigDecimal newMinVal = new BigDecimal(sixList.get(minValPosition)[2]).subtract(ajuste)
-							.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-
-					String[] maxConcept = sixList.get(maxValPosition);
-					String[] minConcept = sixList.get(minValPosition);
-					maxConcept[2] = newMaxVal.toString();
-					minConcept[2] = newMinVal.toString();
 					
-					sixList.set(maxValPosition, maxConcept);
-					sixList.set(minValPosition, minConcept);
+					sixList = OriginalSixList;
 					
-					ajuste = ajuste.add(new BigDecimal("0.01"));
+					BigDecimal increment = new BigDecimal(sixList.get(0)[2]).add(ajuste)
+							.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+					BigDecimal decrement = new BigDecimal(sixList.get(loops)[2]).subtract(ajuste)
+							.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+
+					String[] incrementConcept = sixList.get(0);
+					String[] decrementConcept = sixList.get(loops);
+					incrementConcept[2] = increment.toString();
+					decrementConcept[2] = decrement.toString();
+					
+					sixList.set(0, incrementConcept);
+					sixList.set(loops, decrementConcept);
 					
 				}else{
 					if(entraAjuste){
@@ -415,7 +412,7 @@ public class FormateaECBAjusteIvaController {
 					break;
 				}
 				loops++;
-			} while((totalIva.compareTo(ivaMnOriginal) != 0) && loops < 10);
+			} while((totalIva.compareTo(ivaMnOriginal) != 0) && loops < OriginalSixList.size());
 			
 		}else{
 			result = lines;
@@ -429,7 +426,7 @@ public class FormateaECBAjusteIvaController {
 				result.append(line[1].trim());
 				result.append("|");
 				result.append(line[2].trim());
-				result.append("|");
+				result.append(lastChar);
 				result.append("\n");
 			}
 			

@@ -364,10 +364,13 @@ public class FormateaECBIvaController {
 		String[] originalLineArray = originalLine.split("\\|");
 		newIvaMnValue = newIvaMnValue.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 		newTotalMnValue = newTotalMnValue.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+		
+		BigDecimal newTotal = newTotalMnValue.add(newIvaMnValue);
+		newTotal = newTotal.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 
 		for (int i = 0; i < originalLineArray.length; i++) {
 			if (i == 5) {
-				controlLineSb.append(newTotalMnValue.toString() + "|");
+				controlLineSb.append(newTotal.toString() + "|");
 			} else if (i == 6) {
 				controlLineSb.append(newIvaMnValue.toString() + "|");
 			} else {

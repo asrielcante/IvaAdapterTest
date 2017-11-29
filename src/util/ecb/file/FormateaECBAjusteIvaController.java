@@ -343,7 +343,6 @@ public class FormateaECBAjusteIvaController {
 		StringBuilder result = new StringBuilder();
 		String[] sixArray = lines.toString().split("\\n");
 		List<String[]> sixList = new ArrayList<String[]>();
-		List<String[]> OriginalSixList = new ArrayList<String[]>();
 		String lastChar = "";
 		boolean entraAjuste = false;
 		if(sixArray.length > 1){
@@ -353,22 +352,25 @@ public class FormateaECBAjusteIvaController {
 				lastChar = "";
 			}
 			
-			int necesaryLoops = 0;
 			BigDecimal ajuste = new BigDecimal("0.00");
 			BigDecimal totalIvaInicial = new BigDecimal("0.00");
-			for(String line : sixArray){
+			//for(String line : sixArray){
+			for(int i = 0; i < sixArray.length; i++){
+				String line = sixArray[i];
 				String[] lineArray = line.split("\\|");
 				if(conceptRequiresIva(lineArray[1].trim()) 
 						&& !(isCarter && lineArray[1].trim().toUpperCase().contains("EXENTO"))){
+					System.out.println("Concepto incluido en calculo: " + line);
 					BigDecimal importe = new BigDecimal(lineArray[2].trim());
 					BigDecimal iva = (importe.multiply(tasa)).divide(new BigDecimal(100));
 					iva = iva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 					totalIvaInicial = totalIvaInicial.add(iva);
-					necesaryLoops++;
 				}
 				sixList.add(lineArray);
 			}
-			OriginalSixList = sixList;
+			
+			System.out.println("iva original: " + ivaMnOriginal.toString());
+			System.out.println("iva inicial: " + totalIvaInicial.toString());
 			
 			if(totalIvaInicial.compareTo(ivaMnOriginal) > 0){
 				ajuste = totalIvaInicial.subtract(ivaMnOriginal);
@@ -378,7 +380,7 @@ public class FormateaECBAjusteIvaController {
 					
 			BigDecimal totalIva = BigDecimal.ZERO;
 			
-			int loops = 0;
+			int loops = 1;
 			do{
 				System.out.println("valor ajuste: " + ajuste.toString());
 				totalIva = BigDecimal.ZERO;
@@ -399,7 +401,15 @@ public class FormateaECBAjusteIvaController {
 				if(totalIva.compareTo(ivaMnOriginal) != 0){
 					entraAjuste=true;
 					
-					sixList = OriginalSixList;
+					sixList = new ArrayList<String[]>();
+					for(int i = 0; i < sixArray.length; i++){
+						String line = sixArray[i];
+						String[] lineArray = line.split("\\|");
+						sixList.add(lineArray);
+					}
+					
+					System.out.println("Increment concept val: " + sixList.get(0)[2]);
+					System.out.println("decrement concept val: " + sixList.get(loops)[2]);
 					
 					BigDecimal increment = new BigDecimal(sixList.get(0)[2]).add(ajuste)
 							.setScale(2, BigDecimal.ROUND_HALF_EVEN);
@@ -408,6 +418,7 @@ public class FormateaECBAjusteIvaController {
 
 					String[] incrementConcept = sixList.get(0);
 					String[] decrementConcept = sixList.get(loops);
+					
 					incrementConcept[2] = increment.toString();
 					decrementConcept[2] = decrement.toString();
 					
@@ -421,9 +432,8 @@ public class FormateaECBAjusteIvaController {
 					break;
 				}
 				loops++;
-			} while(loops < necesaryLoops);
-			System.out.println("loops totales: " + loops);
-			System.out.println("loops necesarios: " + necesaryLoops);
+			} while(loops < sixList.size());
+			System.out.println("loops totales: " + (loops-1));
 		}else{
 			result = lines;
 		}

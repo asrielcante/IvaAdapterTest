@@ -46,6 +46,8 @@ public class FormateaECBAjusteIvaController {
 	String lineNine = null;
 	String lineTen = null;
 	String lineEleven = null;
+	
+	private boolean isCarter = false;
 
 	public FormateaECBAjusteIvaController() {
 
@@ -53,6 +55,13 @@ public class FormateaECBAjusteIvaController {
 
 	public boolean processECBTxtFile(String fileName, String timeStamp) {
 		System.out.println("Inicia ajuste IVA - " + fileName);
+		
+		if(fileName.toUpperCase().contains("CFDPTCARTER") || fileName.toUpperCase().contains("CFDPTSOFOMC")){
+			isCarter = true;
+		}else{
+			isCarter = false;
+		}
+		
 		boolean result = true;
 		try {
 			//mapCatalogos = Util.readXLSFile(properties.getUrlArchivoCatalogs());
@@ -344,20 +353,40 @@ public class FormateaECBAjusteIvaController {
 				lastChar = "";
 			}
 			
+			int necesaryLoops = 0;
+			BigDecimal ajuste = new BigDecimal("0.00");
+			BigDecimal totalIvaInicial = new BigDecimal("0.00");
 			for(String line : sixArray){
 				String[] lineArray = line.split("\\|");
+				if(conceptRequiresIva(lineArray[1].trim()) 
+						&& !(isCarter && lineArray[1].trim().toUpperCase().contains("EXENTO"))){
+					BigDecimal importe = new BigDecimal(lineArray[2].trim());
+					BigDecimal iva = (importe.multiply(tasa)).divide(new BigDecimal(100));
+					iva = iva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+					totalIvaInicial = totalIvaInicial.add(iva);
+					necesaryLoops++;
+				}
 				sixList.add(lineArray);
 			}
 			OriginalSixList = sixList;
+			
+			if(totalIvaInicial.compareTo(ivaMnOriginal) > 0){
+				ajuste = totalIvaInicial.subtract(ivaMnOriginal);
+			}else{
+				ajuste = ivaMnOriginal.subtract(totalIvaInicial);
+			}
 					
 			BigDecimal totalIva = BigDecimal.ZERO;
-			BigDecimal ajuste = new BigDecimal("0.00");
-			int loops = 1;
+			
+			int loops = 0;
 			do{
 				System.out.println("valor ajuste: " + ajuste.toString());
 				totalIva = BigDecimal.ZERO;
 				for(String[] lineArray : sixList){
-					if(conceptRequiresIva(lineArray[1].trim())){
+					//System.out.println("Concepto: "+ lineArray[1].trim());
+					if(conceptRequiresIva(lineArray[1].trim()) 
+							&& !(isCarter && lineArray[1].trim().toUpperCase().contains("EXENTO"))){
+						//System.out.println("-Concepto tomado en cuenta-");
 						BigDecimal importe = new BigDecimal(lineArray[2].trim());
 						BigDecimal iva = (importe.multiply(tasa)).divide(new BigDecimal(100));
 						iva = iva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
@@ -369,12 +398,6 @@ public class FormateaECBAjusteIvaController {
 				System.out.println("Iva informado: " + ivaMnOriginal.toString());
 				if(totalIva.compareTo(ivaMnOriginal) != 0){
 					entraAjuste=true;
-					
-					if(totalIva.compareTo(ivaMnOriginal) > 0){
-						ajuste = totalIva.subtract(ivaMnOriginal);
-					}else{
-						ajuste = ivaMnOriginal.subtract(totalIva);
-					}
 					
 					sixList = OriginalSixList;
 					
@@ -398,8 +421,9 @@ public class FormateaECBAjusteIvaController {
 					break;
 				}
 				loops++;
-			} while((totalIva.compareTo(ivaMnOriginal) != 0) && loops < OriginalSixList.size());
-			
+			} while(loops < necesaryLoops);
+			System.out.println("loops totales: " + loops);
+			System.out.println("loops necesarios: " + necesaryLoops);
 		}else{
 			result = lines;
 		}

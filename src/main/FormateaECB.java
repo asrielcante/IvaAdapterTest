@@ -55,7 +55,7 @@ public class FormateaECB {
 				}
 			}
 			
-			if (continua){ //nuevo ajuste iva para todas las interfaces, ya no aplica para carter y sofom
+			if (continua && !carter){ //nuevo ajuste iva para todas las interfaces, ya no aplica para carter y sofom
 				if(!ecbAjusteIvaUtil.processECBTxtFile(filenames[i].trim() + date, timeStamp)){
 					System.out.println("Error al ajustar iva: " + filenames[i].trim().trim());
 				}

@@ -612,17 +612,17 @@ public class FormateaECBCarterController {
 			
 			newTotalCalculated = newSubtotalCalculated.add(newIvaCalculated);
 			
-			System.out.println("Nuevo total iva calculado:" + newIvaCalculated.toString());
+			//System.out.println("Nuevo total iva calculado:" + newIvaCalculated.toString());
 			newIvaCalculated = newIvaCalculated.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-			System.out.println("Nuevo total iva calculado redondeado:" + newIvaCalculated.toString());
+			//System.out.println("Nuevo total iva calculado redondeado:" + newIvaCalculated.toString());
 			
-			System.out.println("Nuevo subTotal calculado redondeado:" + newSubtotalCalculated.toString());
+			//System.out.println("Nuevo subTotal calculado redondeado:" + newSubtotalCalculated.toString());
 			newSubtotalCalculated = newSubtotalCalculated.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-			System.out.println("Nuevo subTotal calculado redondeado:" + newSubtotalCalculated.toString());
+			//System.out.println("Nuevo subTotal calculado redondeado:" + newSubtotalCalculated.toString());
 			
-			System.out.println("Nuevo total calculado redondeado:" + newTotalCalculated.toString());
+			//System.out.println("Nuevo total calculado redondeado:" + newTotalCalculated.toString());
 			newTotalCalculated = newTotalCalculated.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-			System.out.println("Nuevo total calculado redondeado:" + newTotalCalculated.toString());
+			//System.out.println("Nuevo total calculado redondeado:" + newTotalCalculated.toString());
 
 			subTotalResult = newSubtotalCalculated;
 			totalResult = newTotalCalculated;

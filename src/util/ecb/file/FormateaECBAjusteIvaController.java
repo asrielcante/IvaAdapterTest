@@ -360,7 +360,7 @@ public class FormateaECBAjusteIvaController {
 				String[] lineArray = line.split("\\|");
 				if(conceptRequiresIva(lineArray[1].trim()) 
 						&& !(isCarter && lineArray[1].trim().toUpperCase().contains("EXENTO"))){
-					System.out.println("Concepto incluido en calculo: " + line);
+					//System.out.println("Concepto incluido en calculo: " + line);
 					BigDecimal importe = new BigDecimal(lineArray[2].trim());
 					BigDecimal iva = (importe.multiply(tasa)).divide(new BigDecimal(100));
 					iva = iva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
@@ -377,12 +377,12 @@ public class FormateaECBAjusteIvaController {
 			}else{
 				ajuste = ivaMnOriginal.subtract(totalIvaInicial);
 			}
-					
+			System.out.println("valor ajuste: " + ajuste.toString());
 			BigDecimal totalIva = BigDecimal.ZERO;
 			
 			int loops = 1;
 			do{
-				System.out.println("valor ajuste: " + ajuste.toString());
+				
 				totalIva = BigDecimal.ZERO;
 				for(String[] lineArray : sixList){
 					//System.out.println("Concepto: "+ lineArray[1].trim());
@@ -396,8 +396,8 @@ public class FormateaECBAjusteIvaController {
 					}
 				}
 				totalIva = totalIva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-				System.out.println("Iva actual calculado: " + totalIva.toString());
-				System.out.println("Iva informado: " + ivaMnOriginal.toString());
+				//System.out.println("Iva actual calculado: " + totalIva.toString());
+				//System.out.println("Iva informado: " + ivaMnOriginal.toString());
 				if(totalIva.compareTo(ivaMnOriginal) != 0){
 					entraAjuste=true;
 					
@@ -408,8 +408,8 @@ public class FormateaECBAjusteIvaController {
 						sixList.add(lineArray);
 					}
 					
-					System.out.println("Increment concept val: " + sixList.get(0)[2]);
-					System.out.println("decrement concept val: " + sixList.get(loops)[2]);
+					//System.out.println("Increment concept val: " + sixList.get(0)[2]);
+					//System.out.println("decrement concept val: " + sixList.get(loops)[2]);
 					
 					BigDecimal increment = new BigDecimal(sixList.get(0)[2]).add(ajuste)
 							.setScale(2, BigDecimal.ROUND_HALF_EVEN);

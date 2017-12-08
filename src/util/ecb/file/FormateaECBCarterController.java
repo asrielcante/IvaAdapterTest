@@ -527,10 +527,13 @@ public class FormateaECBCarterController {
 				BigDecimal montoExento = importeOriginal.subtract(nuevoImporte);
 				montoExento=montoExento.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 				
-				newLine = "06|"
-						+ lineArray[1] + "|"
-						+ nuevoImporte.toString() + "\n"
-						+"06|"
+				newLine = "";
+				if(nuevoImporte.compareTo(BigDecimal.ZERO) != 0){
+					newLine = newLine + "06|"
+							+ lineArray[1] + "|"
+							+ nuevoImporte.toString() + "\n";
+				}
+				newLine = newLine	+"06|"
 						+ lineArray[1] + " EXENTO" + "|"
 						+ montoExento.toString();
 			}
@@ -589,7 +592,7 @@ public class FormateaECBCarterController {
 		BigDecimal newTotalCalculated = BigDecimal.ZERO;
 		BigDecimal newSubtotalCalculated = BigDecimal.ZERO;
 		
-		if(sixArray.length > 1){
+		if(sixArray.length > 0){
 			for(int i = 0; i < sixArray.length; i++){
 				String line = sixArray[i];
 				String[] lineArray = line.split("\\|");
@@ -601,14 +604,9 @@ public class FormateaECBCarterController {
 					iva = iva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 					newIvaCalculated = newIvaCalculated.add(iva);
 					
-					//sin redondear
-//					BigDecimal importe = new BigDecimal(lineArray[2].trim());
-//					newSubTotal = newSubTotal.add(importe);					
 				}
 				newSubtotalCalculated = newSubtotalCalculated = newSubtotalCalculated.add(importe);
 			}
-			//sin redondear
-			//newIvaCalculated = (newSubTotal.multiply(tasa)).divide(new BigDecimal(100));
 			
 			newTotalCalculated = newSubtotalCalculated.add(newIvaCalculated);
 			

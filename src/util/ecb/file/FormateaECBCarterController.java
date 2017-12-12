@@ -214,19 +214,22 @@ public class FormateaECBCarterController {
                                                     
                                                     if (subTotalMnOriginal.compareTo(newTotal) != 0) {
                                                         //cambiar montos de conceptos informados
-                                                        lineSixSb = processSixLines(lineSixList, subTotalMnOriginal, montoConceptosGrav);
-                                                        //calcular nuevos totales
-                                                        calculateNewTotals(lineSixSb);
-                                                        //reemplazar totales
-                                                        firstLine = replaceTotalsFromFirstLine(firstLine, subTotalResult, totalResult, ivaResult);
-        												// generar linea 2
-        												lineTwo = replaceTotalsFromLineTwo(lineTwo, subTotalResult, totalResult, ivaResult);
-        												// generar linea 7
-        												lineSeven = replaceIvaFromLineSeven(lineSeven, ivaResult);
-        												// generar linea 9
-        												if (!lineNine.isEmpty()) {
-        													lineNine = replaceIvaFromLineNine(lineNine, ivaResult);
-        												}
+                                                    	if(!lineSixSb.toString().trim().isEmpty()){
+                                                    		//System.out.println("entra a procesar lineas 6: " + lineSixSb.toString().trim());
+            	                                            lineSixSb = processSixLines(lineSixList, subTotalMnOriginal, montoConceptosGrav);
+            	                                            //calcular nuevos totales
+            	                                            calculateNewTotals(lineSixSb);
+            	                                            //reemplazar totales
+            	                                            firstLine = replaceTotalsFromFirstLine(firstLine, subTotalResult, totalResult, ivaResult);
+            												// generar linea 2
+            												lineTwo = replaceTotalsFromLineTwo(lineTwo, subTotalResult, totalResult, ivaResult);
+            												// generar linea 7
+            												lineSeven = replaceIvaFromLineSeven(lineSeven, ivaResult);
+            												// generar linea 9
+            												if (!lineNine.isEmpty()) {
+            													lineNine = replaceIvaFromLineNine(lineNine, ivaResult);
+            												}
+                                                    	}
                                                         
                                                     }
                                                 }
@@ -234,6 +237,7 @@ public class FormateaECBCarterController {
                                                 System.out.println(ecbCount.toString() + "---Excepcion al hacer calculos en ECB numero de cuenta: "
                                                         + numCta);
                                                 exception = true;
+                                                e.printStackTrace();
                                             }
                                         }else{
                                         	try{
@@ -242,6 +246,7 @@ public class FormateaECBCarterController {
                                                 System.out.println(ecbCount.toString() + "---Excepcion al procesar conceptos para tasa 0 en ECB numero de cuenta: "
                                                         + numCta);
                                                 exception = true;
+                                                e.printStackTrace();
                                             }
                                         }
                                     } else {
@@ -403,19 +408,22 @@ public class FormateaECBCarterController {
                                         
                                         if (subTotalMnOriginal.compareTo(newTotal) != 0) {
                                             //cambiar montos de conceptos informados
-                                            lineSixSb = processSixLines(lineSixList, subTotalMnOriginal, montoConceptosGrav);
-                                            //calcular nuevos totales
-                                            calculateNewTotals(lineSixSb);
-                                            //reemplazar totales
-                                            firstLine = replaceTotalsFromFirstLine(firstLine, subTotalResult, totalResult, ivaResult);
-											// generar linea 2
-											lineTwo = replaceTotalsFromLineTwo(lineTwo, subTotalResult, totalResult, ivaResult);
-											// generar linea 7
-											lineSeven = replaceIvaFromLineSeven(lineSeven, ivaResult);
-											// generar linea 9
-											if (!lineNine.isEmpty()) {
-												lineNine = replaceIvaFromLineNine(lineNine, ivaResult);
-											}
+                                        	if(!lineSixSb.toString().trim().isEmpty()){
+                                        		//System.out.println("entra a procesar lineas 6: " + lineSixSb.toString().trim());
+	                                            lineSixSb = processSixLines(lineSixList, subTotalMnOriginal, montoConceptosGrav);
+	                                            //calcular nuevos totales
+	                                            calculateNewTotals(lineSixSb);
+	                                            //reemplazar totales
+	                                            firstLine = replaceTotalsFromFirstLine(firstLine, subTotalResult, totalResult, ivaResult);
+												// generar linea 2
+												lineTwo = replaceTotalsFromLineTwo(lineTwo, subTotalResult, totalResult, ivaResult);
+												// generar linea 7
+												lineSeven = replaceIvaFromLineSeven(lineSeven, ivaResult);
+												// generar linea 9
+												if (!lineNine.isEmpty()) {
+													lineNine = replaceIvaFromLineNine(lineNine, ivaResult);
+												}
+                                        	}
                                             
                                         }
                                     }
@@ -423,6 +431,7 @@ public class FormateaECBCarterController {
                                     System.out.println(ecbCount.toString() + "---Excepcion al hacer calculos en ECB numero de cuenta: "
                                             + numCta);
                                     exception = true;
+                                    e.printStackTrace();
                                 }
                             }else{
                             	try{
@@ -431,6 +440,7 @@ public class FormateaECBCarterController {
                                     System.out.println(ecbCount.toString() + "---Excepcion al procesar conceptos para tasa 0 en ECB numero de cuenta: "
                                             + numCta);
                                     exception = true;
+                                    e.printStackTrace();
                                 }
                             }
                         } else {
@@ -533,7 +543,7 @@ public class FormateaECBCarterController {
 	
 	private StringBuilder processSixLines(List<String> sixLines, BigDecimal subTotalOriginal, BigDecimal subTotalNuevo){
 		StringBuilder result = new StringBuilder();
-		
+		//System.out.println("Valores procesa seis: subTotalOriginal - " + subTotalOriginal.toString() + " subtotalNuevo - " + subTotalNuevo.toString());
 		for(String line : sixLines){
 			String[] lineArray = line.split("\\|");
 			String newLine = line;
@@ -584,13 +594,22 @@ public class FormateaECBCarterController {
 		lineEleven = "";
 		lineSixList = new ArrayList<String>();
 		
+		subTotalMnOriginal = BigDecimal.ZERO;
+		newTotalMn = BigDecimal.ZERO;
+		
+		totalConceptsA = BigDecimal.ZERO;
+		ivaA = BigDecimal.ZERO;
+		tasa = BigDecimal.ZERO;
+		ivaMnOriginal = BigDecimal.ZERO;
+		ivaB = BigDecimal.ZERO;
+		montoConceptosGrav = BigDecimal.ZERO;
+		
+		totalOriginal = BigDecimal.ZERO;
+		
 		subTotalResult = BigDecimal.ZERO;
 		totalResult = BigDecimal.ZERO;
 		ivaResult = BigDecimal.ZERO;
-		
-		tasa = BigDecimal.ZERO;
-		totalOriginal = BigDecimal.ZERO;
-		subTotalMnOriginal = BigDecimal.ZERO;
+
 	}
 
 	private void loadCarterConceptList() throws Exception {
@@ -615,45 +634,47 @@ public class FormateaECBCarterController {
 	}
 	
 	private void calculateNewTotals(StringBuilder lines){
-		String[] sixArray = lines.toString().split("\\n");
-		
-		BigDecimal newIvaCalculated = BigDecimal.ZERO;
-		BigDecimal newTotalCalculated = BigDecimal.ZERO;
-		BigDecimal newSubtotalCalculated = BigDecimal.ZERO;
-		
-		if(sixArray.length > 0){
-			for(int i = 0; i < sixArray.length; i++){
-				String line = sixArray[i];
-				String[] lineArray = line.split("\\|");
-				BigDecimal importe = new BigDecimal(lineArray[2].trim());
-				if(listContains(carterConceptList, lineArray[1].trim())){
-					//System.out.println("Carter concepto si aplica iva:" + lineArray[1].trim());
-					//con redondeo
-					BigDecimal iva = (importe.multiply(tasa)).divide(new BigDecimal(100));
-					iva = iva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-					newIvaCalculated = newIvaCalculated.add(iva);
-					
+		//System.out.println("lineas 6: " + lines);
+		if(!lines.toString().trim().isEmpty()){
+			String[] sixArray = lines.toString().split("\\n");
+			BigDecimal newIvaCalculated = BigDecimal.ZERO;
+			BigDecimal newTotalCalculated = BigDecimal.ZERO;
+			BigDecimal newSubtotalCalculated = BigDecimal.ZERO;
+			
+			if(sixArray.length > 0){
+				for(int i = 0; i < sixArray.length; i++){
+					String line = sixArray[i];
+					String[] lineArray = line.split("\\|");
+					BigDecimal importe = new BigDecimal(lineArray[2].trim());
+					if(listContains(carterConceptList, lineArray[1].trim())){
+						//System.out.println("Carter concepto si aplica iva:" + lineArray[1].trim());
+						//con redondeo
+						BigDecimal iva = (importe.multiply(tasa)).divide(new BigDecimal(100));
+						iva = iva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+						newIvaCalculated = newIvaCalculated.add(iva);
+						
+					}
+					newSubtotalCalculated = newSubtotalCalculated = newSubtotalCalculated.add(importe);
 				}
-				newSubtotalCalculated = newSubtotalCalculated = newSubtotalCalculated.add(importe);
+				
+				newTotalCalculated = newSubtotalCalculated.add(newIvaCalculated);
+				
+				//System.out.println("Nuevo total iva calculado:" + newIvaCalculated.toString());
+				newIvaCalculated = newIvaCalculated.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+				//System.out.println("Nuevo total iva calculado redondeado:" + newIvaCalculated.toString());
+				
+				//System.out.println("Nuevo subTotal calculado redondeado:" + newSubtotalCalculated.toString());
+				newSubtotalCalculated = newSubtotalCalculated.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+				//System.out.println("Nuevo subTotal calculado redondeado:" + newSubtotalCalculated.toString());
+				
+				//System.out.println("Nuevo total calculado redondeado:" + newTotalCalculated.toString());
+				newTotalCalculated = newTotalCalculated.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+				//System.out.println("Nuevo total calculado redondeado:" + newTotalCalculated.toString());
+	
+				subTotalResult = newSubtotalCalculated;
+				totalResult = newTotalCalculated;
+				ivaResult = newIvaCalculated;
 			}
-			
-			newTotalCalculated = newSubtotalCalculated.add(newIvaCalculated);
-			
-			//System.out.println("Nuevo total iva calculado:" + newIvaCalculated.toString());
-			newIvaCalculated = newIvaCalculated.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-			//System.out.println("Nuevo total iva calculado redondeado:" + newIvaCalculated.toString());
-			
-			//System.out.println("Nuevo subTotal calculado redondeado:" + newSubtotalCalculated.toString());
-			newSubtotalCalculated = newSubtotalCalculated.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-			//System.out.println("Nuevo subTotal calculado redondeado:" + newSubtotalCalculated.toString());
-			
-			//System.out.println("Nuevo total calculado redondeado:" + newTotalCalculated.toString());
-			newTotalCalculated = newTotalCalculated.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-			//System.out.println("Nuevo total calculado redondeado:" + newTotalCalculated.toString());
-
-			subTotalResult = newSubtotalCalculated;
-			totalResult = newTotalCalculated;
-			ivaResult = newIvaCalculated;
 		}
 	}
 	
@@ -773,7 +794,7 @@ public class FormateaECBCarterController {
 				result.append("\n");
 			}
 		}
-		System.out.println(result.toString());
+		//System.out.println(result.toString());
 		return result;
 	}
 }

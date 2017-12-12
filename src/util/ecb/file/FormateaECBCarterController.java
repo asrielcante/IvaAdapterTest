@@ -752,14 +752,15 @@ public class FormateaECBCarterController {
 			importeSum = importeSum.add(importeOriginal);
 			
 			result.append(line);
+			result.append("\n");
 		}
 		
 		if(importeSum.compareTo(subTotalMnOriginal) == 0 && importeSum.compareTo(totalOriginal) == 0){
 			result = new StringBuilder();
+			
 			for(String line : sixLines){
 				String lastChar = line.substring(line.length() - 1);
 				String[] lineArray = line.split("\\|");
-				String newLine = "";
 				
 				result.append("06");
 				result.append("|");
@@ -769,9 +770,10 @@ public class FormateaECBCarterController {
 				if (lastChar.equals("|")) {
 					result.append("|");
 				}
+				result.append("\n");
 			}
 		}
-		result.append("\n");
+		System.out.println(result.toString());
 		return result;
 	}
 }

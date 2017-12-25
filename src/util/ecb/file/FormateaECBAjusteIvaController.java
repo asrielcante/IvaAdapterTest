@@ -15,6 +15,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class FormateaECBAjusteIvaController {
@@ -171,6 +172,8 @@ public class FormateaECBAjusteIvaController {
 								}
 
 								ecbWritten = ecbWritten.add(BigInteger.ONE);
+								String writeTimeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+								System.out.println(ecbWritten.toString() + " - numCta: " + numCta + " - escrito: " + writeTimeStamp);
 								resetECB();
 							}
 
@@ -261,6 +264,8 @@ public class FormateaECBAjusteIvaController {
 					}
 
 					ecbWritten = ecbWritten.add(BigInteger.ONE);
+					String writeTimeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+					System.out.println(ecbWritten.toString() + " - numCta: " + numCta + " - escrito: " + writeTimeStamp);
 					resetECB();
 				}
 
@@ -372,95 +377,99 @@ public class FormateaECBAjusteIvaController {
 			int conceptsCount = sixList.size();
 			//System.out.println("iva original: " + ivaMnOriginal.toString()); 
 			//System.out.println("iva inicial: " + totalIvaInicial.toString()); 
-			
+			BigDecimal diferencia = BigDecimal.ZERO;
 			if(totalIvaInicial.compareTo(ivaMnOriginal) > 0){
-				//ajuste = totalIvaInicial.subtract(ivaMnOriginal);
+				diferencia = totalIvaInicial.subtract(ivaMnOriginal);
 				substract = true;
 			}else{
-				//ajuste = ivaMnOriginal.subtract(totalIvaInicial);
+				diferencia = ivaMnOriginal.subtract(totalIvaInicial);
 			}
-			
+			//System.out.println("Diferencia iva: "+ diferencia.toString());
+			diferencia = diferencia.setScale(2, BigDecimal.ROUND_HALF_EVEN); 
 			BigDecimal totalIva = BigDecimal.ZERO;
-			
-			int loops = 1;
-			boolean stopped = false;
-			do{
-				ajuste = ajuste.add(new BigDecimal("0.01"));
-				
-				for(int c = 1; c < conceptsCount; c++){
-					totalIva = BigDecimal.ZERO;
-					for(String[] lineArray : sixList){
-						//System.out.println("Concepto: "+ lineArray[1].trim());
-						if(conceptRequiresIva(lineArray[1].trim()) 
-								&& !(isCarter && lineArray[1].trim().toUpperCase().contains("EXENTO"))){
-							//System.out.println("-Concepto tomado en cuenta-");
-							BigDecimal importe = new BigDecimal(lineArray[2].trim());
-							BigDecimal iva = (importe.multiply(tasa)).divide(new BigDecimal(100));
-							iva = iva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-							totalIva = totalIva.add(iva);
-						}
-					}
-					totalIva = totalIva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+			if(diferencia.compareTo(new BigDecimal("0.5")) < 0){
+				//System.out.println("Entro ajuste < 0.5" + (diferencia.compareTo(new BigDecimal("0.5")) < 0));
+				int loops = 1;
+				boolean stopped = false;
+				do{
+					ajuste = ajuste.add(new BigDecimal("0.01"));
 					
-					if(totalIva.compareTo(ivaMnOriginal) != 0){
-						//System.out.println("Iva actual calculado: " + totalIva.toString());
-						//System.out.println("Iva informado: " + ivaMnOriginal.toString());
-						//System.out.println("---valor ajuste: " + ajuste.toString()); 
-						entraAjuste=true;
-						
-						sixList = new ArrayList<String[]>();
-						for(int i = 0; i < sixArray.length; i++){
-							String line = sixArray[i];
-							String[] lineArray = line.split("\\|");
-							sixList.add(lineArray);
+					for(int c = 1; c < conceptsCount; c++){
+						totalIva = BigDecimal.ZERO;
+						for(String[] lineArray : sixList){
+							//System.out.println("Concepto: "+ lineArray[1].trim());
+							if(conceptRequiresIva(lineArray[1].trim()) 
+									&& !(isCarter && lineArray[1].trim().toUpperCase().contains("EXENTO"))){
+								//System.out.println("-Concepto tomado en cuenta-");
+								BigDecimal importe = new BigDecimal(lineArray[2].trim());
+								BigDecimal iva = (importe.multiply(tasa)).divide(new BigDecimal(100));
+								iva = iva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+								totalIva = totalIva.add(iva);
+							}
 						}
+						totalIva = totalIva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 						
-						//System.out.println("Increment concept val: " + sixList.get(0)[2]);
-						//System.out.println("decrement concept val: " + sixList.get(loops)[2]);
-						BigDecimal increment = BigDecimal.ZERO;
-						BigDecimal decrement = BigDecimal.ZERO;
-						if(!substract){
-							//System.out.println("Entra add");
-							increment = new BigDecimal(sixList.get(0)[2]).add(ajuste)
-									.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-							decrement = new BigDecimal(sixList.get(c)[2]).subtract(ajuste)
-									.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+						if(totalIva.compareTo(ivaMnOriginal) != 0){
+							//System.out.println("Iva actual calculado: " + totalIva.toString());
+							//System.out.println("Iva informado: " + ivaMnOriginal.toString());
+							//System.out.println("---valor ajuste: " + ajuste.toString()); 
+							entraAjuste=true;
+							
+							sixList = new ArrayList<String[]>();
+							for(int i = 0; i < sixArray.length; i++){
+								String line = sixArray[i];
+								String[] lineArray = line.split("\\|");
+								sixList.add(lineArray);
+							}
+							
+							//System.out.println("Increment concept val: " + sixList.get(0)[2]);
+							//System.out.println("decrement concept val: " + sixList.get(loops)[2]);
+							BigDecimal increment = BigDecimal.ZERO;
+							BigDecimal decrement = BigDecimal.ZERO;
+							if(!substract){
+								//System.out.println("Entra add");
+								increment = new BigDecimal(sixList.get(0)[2]).add(ajuste)
+										.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+								decrement = new BigDecimal(sixList.get(c)[2]).subtract(ajuste)
+										.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+							}else{
+								//System.out.println("Entra substract");
+								increment = new BigDecimal(sixList.get(0)[2]).subtract(ajuste)
+										.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+								decrement = new BigDecimal(sixList.get(c)[2]).add(ajuste)
+										.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+							}
+		
+							String[] incrementConcept = sixList.get(0);
+							String[] decrementConcept = sixList.get(c);
+							
+							incrementConcept[2] = increment.toString();
+							decrementConcept[2] = decrement.toString();
+							
+							sixList.set(0, incrementConcept);
+							sixList.set(c, decrementConcept);
+							
 						}else{
-							//System.out.println("Entra substract");
-							increment = new BigDecimal(sixList.get(0)[2]).subtract(ajuste)
-									.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-							decrement = new BigDecimal(sixList.get(c)[2]).add(ajuste)
-									.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+							if(entraAjuste){
+								newIvaMn = totalIva;
+								//System.out.println("---Si ajusto iva---");
+							}
+							stopped = true;
+							break;
 						}
-	
-						String[] incrementConcept = sixList.get(0);
-						String[] decrementConcept = sixList.get(c);
-						
-						incrementConcept[2] = increment.toString();
-						decrementConcept[2] = decrement.toString();
-						
-						sixList.set(0, incrementConcept);
-						sixList.set(c, decrementConcept);
-						
-					}else{
-						if(entraAjuste){
-							newIvaMn = totalIva;
-							//System.out.println("---Si ajusto iva---");
-						}
-						stopped = true;
+	//					if(loops == (sixList.size()-1)){
+	//						loops = 1;
+	//					}else{
+	//						loops++;
+	//					}
+					}
+					if(stopped){
 						break;
 					}
-//					if(loops == (sixList.size()-1)){
-//						loops = 1;
-//					}else{
-//						loops++;
-//					}
-				}
-				if(stopped){
-					break;
-				}
-			} while(ajuste.compareTo(new BigDecimal("0.05")) < 0 );
-
+				} while(ajuste.compareTo(new BigDecimal("0.05")) < 0 );
+			}else{
+				result = lines;
+			}
 		}else{
 			result = lines;
 		}

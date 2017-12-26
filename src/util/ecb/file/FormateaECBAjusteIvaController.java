@@ -16,7 +16,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FormateaECBAjusteIvaController {
 
@@ -25,7 +27,8 @@ public class FormateaECBAjusteIvaController {
 	public static String PathECBCatalogos = "/home/linuxlite/shell_scripts/ECBIVA/interfaces/";
 
 	public static String ajusteIvaConceptsFileName = "ajusteIvaConceptos.TXT";
-	List<String[]> ajusteIvaConceptList = null;
+	//List<String[]> ajusteIvaConceptList = null;
+	Map<String, String> ajusteIvaConceptList = null;
 	
 	
 	public static String filesExtension = ".TXT";
@@ -49,6 +52,9 @@ public class FormateaECBAjusteIvaController {
 	String lineEleven = null;
 	
 	private boolean isCarter = false;
+	
+	List<String> sixListOriginal = new ArrayList<String>();
+	List<String> sixList = new ArrayList<String>();
 
 	public FormateaECBAjusteIvaController() {
 
@@ -347,7 +353,7 @@ public class FormateaECBAjusteIvaController {
 	private StringBuilder adjustIvaFromLinesSix(StringBuilder lines){
 		StringBuilder result = new StringBuilder();
 		String[] sixArray = lines.toString().split("\\n");
-		List<String[]> sixList = new ArrayList<String[]>();
+		//List<String[]> sixList = new ArrayList<String[]>();
 		String lastChar = "";
 		boolean entraAjuste = false;
 		boolean substract = false;
@@ -364,15 +370,18 @@ public class FormateaECBAjusteIvaController {
 			for(int i = 0; i < sixArray.length; i++){
 				String line = sixArray[i];
 				String[] lineArray = line.split("\\|");
-				if(conceptRequiresIva(lineArray[1].trim()) 
-						&& !(isCarter && lineArray[1].trim().toUpperCase().contains("EXENTO"))){
+				//String[] lineArrayOriginal = line.split("\\|");
+				if(conceptRequiresIva(lineArray[1].trim())){
 					//System.out.println("Concepto incluido en calculo: " + line);
 					BigDecimal importe = new BigDecimal(lineArray[2].trim());
 					BigDecimal iva = (importe.multiply(tasa)).divide(new BigDecimal(100));
 					iva = iva.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 					totalIvaInicial = totalIvaInicial.add(iva);
 				}
-				sixList.add(lineArray);
+				sixList.add(line);
+				//System.arraycopy( lineArray, 0, lineArrayOriginal, 0, lineArray.length );
+				String lineOriginal = line;
+				sixListOriginal.add(lineOriginal);
 			}
 			int conceptsCount = sixList.size();
 			//System.out.println("iva original: " + ivaMnOriginal.toString()); 
@@ -396,10 +405,10 @@ public class FormateaECBAjusteIvaController {
 					
 					for(int c = 1; c < conceptsCount; c++){
 						totalIva = BigDecimal.ZERO;
-						for(String[] lineArray : sixList){
+						for(String line : sixList){
 							//System.out.println("Concepto: "+ lineArray[1].trim());
-							if(conceptRequiresIva(lineArray[1].trim()) 
-									&& !(isCarter && lineArray[1].trim().toUpperCase().contains("EXENTO"))){
+							String[] lineArray = line.split("\\|");
+							if(conceptRequiresIva(lineArray[1].trim())){
 								//System.out.println("-Concepto tomado en cuenta-");
 								BigDecimal importe = new BigDecimal(lineArray[2].trim());
 								BigDecimal iva = (importe.multiply(tasa)).divide(new BigDecimal(100));
@@ -415,39 +424,41 @@ public class FormateaECBAjusteIvaController {
 							//System.out.println("---valor ajuste: " + ajuste.toString()); 
 							entraAjuste=true;
 							
-							sixList = new ArrayList<String[]>();
-							for(int i = 0; i < sixArray.length; i++){
-								String line = sixArray[i];
-								String[] lineArray = line.split("\\|");
-								sixList.add(lineArray);
-							}
-							
-							//System.out.println("Increment concept val: " + sixList.get(0)[2]);
-							//System.out.println("decrement concept val: " + sixList.get(loops)[2]);
+//							sixList = new ArrayList<String[]>();
+//							for(int i = 0; i < sixArray.length; i++){
+//								String line = sixArray[i];
+//								String[] lineArray = line.split("\\|");
+//								sixList.add(lineArray);
+//							}
+							sixList = new ArrayList<String>(sixListOriginal);
+							String[] incrementArray = sixList.get(0).split("\\|");
+							String[] decrementArray = sixList.get(c).split("\\|");
+							//System.out.println("Increment concept val: " + incrementArray[2]);
+							//System.out.println("decrement concept val: " + decrementArray[2]);
 							BigDecimal increment = BigDecimal.ZERO;
 							BigDecimal decrement = BigDecimal.ZERO;
 							if(!substract){
 								//System.out.println("Entra add");
-								increment = new BigDecimal(sixList.get(0)[2]).add(ajuste)
+								increment = new BigDecimal(incrementArray[2]).add(ajuste)
 										.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-								decrement = new BigDecimal(sixList.get(c)[2]).subtract(ajuste)
+								decrement = new BigDecimal(decrementArray[2]).subtract(ajuste)
 										.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 							}else{
 								//System.out.println("Entra substract");
-								increment = new BigDecimal(sixList.get(0)[2]).subtract(ajuste)
+								increment = new BigDecimal(incrementArray[2]).subtract(ajuste)
 										.setScale(2, BigDecimal.ROUND_HALF_EVEN);
-								decrement = new BigDecimal(sixList.get(c)[2]).add(ajuste)
+								decrement = new BigDecimal(decrementArray[2]).add(ajuste)
 										.setScale(2, BigDecimal.ROUND_HALF_EVEN);
 							}
 		
-							String[] incrementConcept = sixList.get(0);
-							String[] decrementConcept = sixList.get(c);
+							//String[] incrementConcept = sixList.get(0);
+							//String[] decrementConcept = sixList.get(c);
 							
-							incrementConcept[2] = increment.toString();
-							decrementConcept[2] = decrement.toString();
+							incrementArray[2] = increment.toString();
+							decrementArray[2] = decrement.toString();
 							
-							sixList.set(0, incrementConcept);
-							sixList.set(c, decrementConcept);
+							sixList.set(0, generateSixLineFromArray(incrementArray, lastChar));
+							sixList.set(c, generateSixLineFromArray(decrementArray, lastChar));
 							
 						}else{
 							if(entraAjuste){
@@ -475,14 +486,16 @@ public class FormateaECBAjusteIvaController {
 		}
 		
 		if(newIvaMn.compareTo(BigDecimal.ZERO) > 0 && newIvaMn.compareTo(ivaMnOriginal) == 0){
-			//generar nuevas lineas 6
-			for(String[] line : sixList){
-				result.append(line[0].trim());
-				result.append("|");
-				result.append(line[1].trim());
-				result.append("|");
-				result.append(line[2].trim());
-				result.append(lastChar);
+			//concatenar nuevas lineas 6
+			for(String line : sixList){
+//				result.append(line[0].trim());
+//				result.append("|");
+//				result.append(line[1].trim());
+//				result.append("|");
+//				result.append(line[2].trim());
+//				result.append(lastChar);
+				//String[] lineArray = line.split("\\|");
+				result.append(line);
 				result.append("\n");
 			}
 			
@@ -493,17 +506,32 @@ public class FormateaECBAjusteIvaController {
 		return result;
 	}
 	
+	public String generateSixLineFromArray(String[] sixArray, String lastChar){
+		StringBuilder result = new StringBuilder();
+		
+		result.append(sixArray[0].trim());
+		result.append("|");
+		result.append(sixArray[1].trim());
+		result.append("|");
+		result.append(sixArray[2].trim());
+		result.append(lastChar);
+		
+		return result.toString();
+	}
+	
 	private boolean conceptRequiresIva(String concept) {
 		boolean result = false;
 		if (ajusteIvaConceptList != null) {
-			for (String[] row : ajusteIvaConceptList) {
-				if (row.length == 5) {
-					if (row[0].equals("002") && !row[1].equalsIgnoreCase("Exento") && row[4].equalsIgnoreCase(concept)) {
-						result = true;
-						break;
-					}
-				}
-			}
+//			for (String[] row : ajusteIvaConceptList) {
+//				if (row.length == 5) {
+//					if (row[0].equals("002") && !row[1].equalsIgnoreCase("Exento") && row[4].equalsIgnoreCase(concept)) {
+//						result = true;
+//						break;
+//					}
+//				}
+//			}
+			//System.out.println(ajusteIvaConceptList.get(concept.trim().toUpperCase()));
+			result = ajusteIvaConceptList.containsKey(concept.trim().toUpperCase());
 		}
 		return result;
 	}
@@ -514,12 +542,20 @@ public class FormateaECBAjusteIvaController {
 		DataInputStream dis = new DataInputStream(fis);
 		BufferedReader bfr = new BufferedReader(new InputStreamReader(dis, "UTF-8"));
 		String conceptLine = null;
-		ajusteIvaConceptList = new ArrayList<String[]>();
+		//ajusteIvaConceptList = new ArrayList<String[]>();
+		ajusteIvaConceptList = new HashMap<String, String>();
 
 		while ((conceptLine = bfr.readLine()) != null) {
-			String[] conceptArray = conceptLine.split("\\|");
-			if(conceptArray[0].trim().equals("002") && !conceptArray[1].trim().equalsIgnoreCase("Exento")){
-				ajusteIvaConceptList.add(conceptArray);
+			if(conceptLine.trim() != ""){
+				//System.out.println(conceptLine);
+				String[] conceptArray = conceptLine.replace("\uFEFF", "").split("\\|");
+				//System.out.println("antes agrega: " + conceptArray[4].trim().toUpperCase());
+				//System.out.println(conceptArray[0]+ " - "+(conceptArray[0].equalsIgnoreCase("002") && !conceptArray[1].trim().equalsIgnoreCase("Exento")));
+				if(conceptArray[0].equalsIgnoreCase("002") && !conceptArray[1].trim().equalsIgnoreCase("Exento")){
+					//ajusteIvaConceptList.add(conceptArray);
+					ajusteIvaConceptList.put(conceptArray[4].trim().toUpperCase(), conceptArray[4].trim().toUpperCase());
+					//System.out.println("despues agrega: "+ajusteIvaConceptList.get(conceptArray[4].trim().toUpperCase()));
+				}
 			}
 		}
 		bfr.close();

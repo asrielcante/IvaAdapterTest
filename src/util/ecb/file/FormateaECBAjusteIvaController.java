@@ -340,6 +340,9 @@ public class FormateaECBAjusteIvaController {
 
 		lineSixSb = new StringBuilder();
 		lineElevenSb = new StringBuilder();
+		
+		sixListOriginal = new ArrayList<String>();
+		sixList = new ArrayList<String>();
 
 		firstLine = "";
 		lineSeven = "";

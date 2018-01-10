@@ -32,9 +32,11 @@ public class FormateaECB {
 			
 			boolean continua = true;
 			boolean carter = false;
+			boolean pampa = false;
 			
 			if(filenames[i].trim().equalsIgnoreCase("CFDLMPAMPAS")
 					|| filenames[i].trim().equalsIgnoreCase("CFDLMPAMPAA")){//ajuste lineas 6 para pampa
+				pampa = true;
 				if(!ecbPampaUtil.processECBTxtFile(filenames[i].trim() + date, timeStamp)){
 					continua = false;
 					System.out.println("Error al procesar pampa: " + filenames[i].trim());
@@ -48,7 +50,7 @@ public class FormateaECB {
 				}
 			}
 			
-			if(continua && !carter){//ajuste iva para todas las interfaces - iva de carter se ajusta en el paso anterior
+			if(continua && !carter && !pampa){//ajuste iva para todas las interfaces - no aplica carter ni pampa
 				if(!ecbIvaUtil.processECBTxtFile(filenames[i].trim() + date, timeStamp)){
 					System.out.println("Error al procesar iva: " + filenames[i].trim().trim());
 					continua = false;
